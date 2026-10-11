@@ -118,6 +118,15 @@ def test_headline_with_english_acronyms_is_not_legacy():
     assert not is_legacy_font_text(headline)
 
 
+def test_brand_heavy_unicode_headline_is_not_legacy():
+    # Real Dinamina headlines that are mostly English brand names
+    for headline in [
+        "Sumathi Information Technologies 25 වැනි සංවත්සරය සමරයි",
+        "EKHO Belihuloya විවෘත වෙයි",
+    ]:
+        assert not is_legacy_font_text(headline)
+
+
 def test_fm_abhaya_text_is_legacy():
     # "ශ්‍රී ලංකා රජය" typed in the FM Abhaya font: Latin code points
     assert is_legacy_font_text("Y%S ,xld rch")
