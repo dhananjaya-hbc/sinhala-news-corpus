@@ -1,0 +1,106 @@
+---
+import "@fontsource/noto-sans-sinhala/400.css";
+import "@fontsource/noto-sans-sinhala/600.css";
+import "@fontsource/noto-sans-sinhala/700.css";
+import "../styles/global.css";
+import { CATEGORIES, CATEGORY_IDS, REPO_URL, data, url } from "../lib/data";
+
+interface Props {
+  title: string;
+  description?: string;
+  active?: string; // category id or page key to highlight in the nav
+}
+
+const {
+  title,
+  description = "Latest Sinhala news headlines from Sri Lankan publishers, sorted by topic. Every headline links to the original article.",
+  active,
+} = Astro.props;
+const fullTitle = title === "සිංහල පුවත්" ? "සිංහල පුවත් · Sinhala News Corpus" : `${title} · සිංහල පුවත්`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const updated = data.generated_from ? data.generated_from.replace("T", " ").replace("Z", " UTC") : "—";
+const navLink = "rounded-full px-3 py-1 text-sm whitespace-nowrap transition-colors";
+---
+
+<!doctype html>
+<html lang="si">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url("favicon.svg")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
+  </head>
+  <body class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:bg-white focus:px-3 focus:py-2 dark:focus:bg-stone-900">
+      Skip to content
+    </a>
+
+    <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80">
+      <div class="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
+        <a href={url()} class="group">
+          <span class="block text-xl font-bold leading-tight">සිංහල පුවත්</span>
+          <span class="block text-xs text-stone-500 group-hover:text-stone-700 dark:text-stone-400 dark:group-hover:text-stone-200">
+            Sinhala News Corpus
+          </span>
+        </a>
+        <nav class="flex items-center gap-1 text-sm" aria-label="Site">
+          <a href={url("search/")} class:list={[navLink, active === "search" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
+            සොයන්න
+          </a>
+          <a href={url("about/")} class:list={[navLink, active === "about" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
+            About
+          </a>
+        </nav>
+      </div>
+      <nav class="mx-auto max-w-4xl overflow-x-auto px-4 pb-3" aria-label="Categories">
+        <ul class="flex gap-1">
+          <li>
+            <a href={url()} class:list={[navLink, active === "home" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
+              සියල්ල
+            </a>
+          </li>
+          {
+            CATEGORY_IDS.map((id) => (
+              <li>
+                <a
+                  href={url(`category/${id}/`)}
+                  class:list={[navLink, active === id ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}
+                >
+                  {CATEGORIES[id].si}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main" class="mx-auto max-w-4xl px-4 py-6">
+      <slot />
+    </main>
+
+    <footer class="border-t border-stone-200 dark:border-stone-800">
+      <div class="mx-auto max-w-4xl space-y-2 px-4 py-6 text-sm text-stone-500 dark:text-stone-400">
+        <p>
+          සිරස්තල එක් එක් ප්‍රකාශකයාට අයත් වේ. සෑම සිරස්තලයක්ම මුල් ලිපියට යොමු කරයි.
+          <br />
+          Headlines belong to their publishers; each one links to the original article. No article text is copied.
+        </p>
+        <p>
+          <a class="underline hover:text-stone-800 dark:hover:text-stone-200" href={REPO_URL}>GitHub</a> ·
+          Data <a class="underline hover:text-stone-800 dark:hover:text-stone-200" href={`${REPO_URL}/blob/main/DATA_LICENSE.md`}>CC BY 4.0</a> ·
+          Code <a class="underline hover:text-stone-800 dark:hover:text-stone-200" href={`${REPO_URL}/blob/main/LICENSE`}>MIT</a> ·
+          Last collected {updated}
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
