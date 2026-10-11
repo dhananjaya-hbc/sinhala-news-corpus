@@ -38,18 +38,19 @@ def entry_terms(entry) -> list[str]:
 def entry_date(entry, now: datetime) -> str:
     """Publication date in Sri Lanka time, or today's date if the feed has none.
 
-    Some feeds carry no pubDate at all (Ada Derana); Ada.lk writes it with
-    Sinhala month names, which feedparser cannot read.
+    Some feeds carry no pubDate at all (Ada Derana). Ada.lk writes it with
+    Sinhala month names, which feedparser silently misreads ("2026 ඔක්තෝබර්
+    මස 08 ..." becomes 2026-10-01), so the Sinhala format is tried first.
     """
     today = now.astimezone(SRI_LANKA_TZ).date()
+    sinhala = parse_sinhala_date(entry.get("published") or entry.get("updated") or "")
+    if sinhala:
+        return (sinhala if sinhala <= today else today).isoformat()
     parsed = entry.get("published_parsed") or entry.get("updated_parsed")
     if parsed:
         published = datetime(*parsed[:6], tzinfo=timezone.utc)
         if published <= now + timedelta(days=1):  # ignore obviously wrong future dates
             return published.astimezone(SRI_LANKA_TZ).date().isoformat()
-    sinhala = parse_sinhala_date(entry.get("published") or entry.get("updated") or "")
-    if sinhala and sinhala <= today:
-        return sinhala.isoformat()
     return today.isoformat()
 
 
