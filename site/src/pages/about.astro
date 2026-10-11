@@ -1,0 +1,69 @@
+---
+import Base from "../layouts/Base.astro";
+import { CATEGORIES, REPO_URL, data } from "../lib/data";
+
+const nf = new Intl.NumberFormat("en-US");
+const prose = "space-y-3 text-stone-700 dark:text-stone-300";
+const h2 = "mt-8 mb-2 text-lg font-bold";
+const a = "underline hover:text-sky-700 dark:hover:text-sky-300";
+---
+
+<Base title="About" active="about" description="About the Sinhala News Corpus: an open, labelled dataset of Sinhala news headlines.">
+  <h1 class="mb-4 text-2xl font-bold">About · මෙම වෙබ් අඩවිය ගැන</h1>
+
+  <div class={prose}>
+    <p>
+      This site is the public face of the <a class={a} href={REPO_URL}>Sinhala News Corpus</a>: an open, growing dataset of
+      Sinhala news headlines with topic labels, built for Sinhala natural-language processing. Sinhala is a low-resource
+      language, and clean, labelled Sinhala text is scarce.
+    </p>
+    <p>
+      මෙය සිංහල භාෂා තාක්ෂණ පර්යේෂණ සඳහා විවෘත දත්ත ව්‍යාපෘතියකි. සිරස්තල සහ මුල් ලිපියට යොමුව පමණක් ගබඩා කෙරේ.
+    </p>
+  </div>
+
+  <h2 class={h2}>How it works</h2>
+  <div class={prose}>
+    <p>
+      Every day a GitHub Actions job reads the public RSS feeds of {data.sources.length} Sri Lankan news sites, cleans each
+      headline (Unicode NFC, correct handling of the zero-width joiner in ශ්‍රී and ප්‍ර, removal of legacy-font text),
+      removes duplicates, and labels it with the publisher's own section. The dataset currently holds{" "}
+      <strong>{nf.format(data.total_all_time)}</strong> headlines; this site shows the last {data.days} days.
+    </p>
+  </div>
+
+  <h2 class={h2}>Sources</h2>
+  <ul class="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900">
+    {
+      data.sources.map((s) => (
+        <li class="flex items-center justify-between gap-4 px-4 py-2">
+          <a class={a} href={s.homepage} target="_blank" rel="noopener">{s.name}</a>
+          <span class="text-sm tabular-nums text-stone-500">{nf.format(s.count)}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2 class={h2}>Topics</h2>
+  <p class={prose}>
+    {Object.values(CATEGORIES).map((c) => `${c.si} (${c.en})`).join(" · ")}
+  </p>
+
+  <h2 class={h2}>Copyright and ethics</h2>
+  <ul class:list={[prose, "list-disc pl-5"]}>
+    <li>Only the headline, link, date and topic are stored. Article text and images are never copied, and article pages are never requested.</li>
+    <li>Headlines remain the property of their publishers. Every headline links to the original article, so readers go to the publisher's site.</li>
+    <li>robots.txt is checked before every request, and each site is visited once a day.</li>
+    <li>
+      Publishers who want their headlines removed can <a class={a} href={`${REPO_URL}/issues/new`}>open an issue</a>; the source will
+      be disabled and its rows removed.
+    </li>
+  </ul>
+
+  <h2 class={h2}>Use the data</h2>
+  <p class={prose}>
+    Download the CSV files from <a class={a} href={`${REPO_URL}/tree/main/data/raw`}>data/raw</a>
+    (<a class={a} href={`${REPO_URL}/blob/main/DATA_LICENSE.md`}>CC BY 4.0</a>). Statistics are in
+    <a class={a} href={`${REPO_URL}/blob/main/STATS.md`}>STATS.md</a>.
+  </p>
+</Base>
