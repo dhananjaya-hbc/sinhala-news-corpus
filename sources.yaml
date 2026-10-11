@@ -20,7 +20,7 @@ settings:
   timeout: 30          # seconds per request
   retries: 3           # retries after the first attempt, for network errors / 429 / 5xx
   backoff: 2.0         # seconds; doubles after each retry (2, 4, 8)
-  min_sinhala_ratio: 0.5   # below this share of Sinhala letters a headline is treated as legacy-font text and skipped
+  min_sinhala_ratio: 0.3   # below this share of Sinhala letters a headline is treated as legacy-font text and skipped
 
 sources:
   - id: adaderana
