@@ -1,41 +1,52 @@
 ---
+import Label from "../components/Label.astro";
 import Base from "../layouts/Base.astro";
-import { CATEGORIES, CATEGORY_IDS, data, url } from "../lib/data";
+import { CATEGORIES, CATEGORY_IDS, SECTION_ORDER, data, url } from "../lib/data";
 
-const categoryNames = Object.fromEntries(CATEGORY_IDS.map((id) => [id, { si: CATEGORIES[id].si, chip: CATEGORIES[id].chip }]));
+const categoryNames = Object.fromEntries(CATEGORY_IDS.map((id) => [id, CATEGORIES[id].si]));
 const sourceNames = Object.fromEntries(data.sources.map((s) => [s.id, s.name]));
+const filters = [...SECTION_ORDER, "other" as const];
+const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors";
 ---
 
-<Base title="සොයන්න" active="search" description="Search recent Sinhala news headlines.">
-  <h1 class="mb-1 text-2xl font-bold">සොයන්න <span class="text-lg font-normal text-stone-500">· Search</span></h1>
-  <p class="mb-4 text-sm text-stone-500 dark:text-stone-400">පසුගිය දින {data.days} තුළ සිරස්තල {data.headlines.length}ක් අතර සොයන්න.</p>
+<Base title="සොයන්න" active="search" compact description="Search recent Sinhala news headlines.">
+  <header class="mb-6">
+    <Label si="ලේඛනාගාරය" en="Archive search" />
+    <h1 class="mt-1 font-serif text-[3rem] font-extrabold leading-[1.1] sm:text-[3.8rem]">සොයන්න</h1>
+    <p class="mt-1 text-sm text-ink-2">පසුගිය දින {data.days} තුළ සිරස්තල {data.headlines.length}ක් අතර සොයන්න.</p>
+  </header>
 
-  <form id="search-form" class="mb-6 flex flex-col gap-2 sm:flex-row" role="search" onsubmit="return false">
+  <form id="search-form" role="search" onsubmit="return false" class="mb-8">
     <label class="sr-only" for="q">Search headlines</label>
     <input
       id="q"
       type="search"
       autocomplete="off"
-      placeholder="උදා: ක්‍රිකට්, IMF, ශ්‍රී ලංකා"
-      class="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-base dark:border-stone-700 dark:bg-stone-900"
+      placeholder="ක්‍රිකට්, IMF, ශ්‍රී ලංකා…"
+      class="w-full rounded-none border-0 border-b-2 border-ink bg-transparent px-0 py-3 font-serif text-[1.9rem] text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none focus-visible:outline-none sm:text-[2.4rem]"
     />
-    <label class="sr-only" for="cat">Category</label>
-    <select id="cat" class="rounded-xl border border-stone-300 bg-white px-3 py-2.5 dark:border-stone-700 dark:bg-stone-900">
-      <option value="">සියලු කාණ්ඩ</option>
-      {CATEGORY_IDS.map((id) => <option value={id}>{CATEGORIES[id].si}</option>)}
-    </select>
+    <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by section">
+      <button type="button" data-cat="" aria-pressed="true" class:list={[pill, "border-ink bg-ink text-paper"]}>සියල්ල</button>
+      {
+        filters.map((id) => (
+          <button type="button" data-cat={id} aria-pressed="false" class:list={[pill, "border-rule text-ink-2 hover:border-ink hover:text-ink"]}>
+            {CATEGORIES[id].si}
+          </button>
+        ))
+      }
+    </div>
   </form>
 
-  <p id="status" class="mb-3 text-sm text-stone-500 dark:text-stone-400" aria-live="polite"></p>
-  <ul
+  <p id="status" class="mb-2 border-b-2 border-ink pb-2 font-sans text-sm text-ink-2" aria-live="polite"></p>
+  <div
     id="results"
-    class="divide-y divide-stone-200 overflow-hidden rounded-xl border border-stone-200 bg-white empty:hidden dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900"
+    class="news-columns md:columns-2 lg:columns-3"
     data-index={url("search.json")}
     data-base={url()}
     data-categories={JSON.stringify(categoryNames)}
     data-sources={JSON.stringify(sourceNames)}
   >
-  </ul>
+  </div>
 </Base>
 
 <script>
@@ -47,14 +58,24 @@ const sourceNames = Object.fromEntries(data.sources.map((s) => [s.id, s.name]));
     u: string;
   }
 
-  const MAX_RESULTS = 100;
-  const list = document.getElementById("results") as HTMLUListElement;
+  const MAX_RESULTS = 120;
+  const ACTIVE = ["border-ink", "bg-ink", "text-paper"];
+  const IDLE = ["border-rule", "text-ink-2", "hover:border-ink", "hover:text-ink"];
+
+  const results = document.getElementById("results") as HTMLDivElement;
   const input = document.getElementById("q") as HTMLInputElement;
-  const select = document.getElementById("cat") as HTMLSelectElement;
   const status = document.getElementById("status") as HTMLParagraphElement;
-  const base = list.dataset.base ?? "/";
-  const categories = JSON.parse(list.dataset.categories ?? "{}") as Record<string, { si: string; chip: string }>;
-  const sources = JSON.parse(list.dataset.sources ?? "{}") as Record<string, string>;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>("button[data-cat]")];
+  const base = results.dataset.base ?? "/";
+  const categories = JSON.parse(results.dataset.categories ?? "{}") as Record<string, string>;
+  const sources = JSON.parse(results.dataset.sources ?? "{}") as Record<string, string>;
+  let category = "";
+  // Spelled out here because some browsers ship without Sinhala date formatting
+  const MONTHS = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
+  const sinhalaDate = (iso: string) => {
+    const [year, month, day] = iso.split("-").map(Number);
+    return `${year} ${MONTHS[month - 1]} ${day}`;
+  };
 
   // Match the way the corpus is cleaned: NFC, no zero-width characters, case-folded.
   // So "ශ්රී" (typed without ZWJ) still finds "ශ්‍රී".
@@ -70,36 +91,49 @@ const sourceNames = Object.fromEntries(data.sources.map((s) => [s.id, s.name]));
     return node;
   }
 
+  function story(hit: Hit) {
+    const wrap = el("div", "border-b border-rule py-4");
+    const kicker = el("a", "mb-1 inline-block font-sans text-[0.8rem] font-semibold text-accent hover:underline", categories[hit.c] ?? hit.c);
+    kicker.href = `${base}category/${hit.c}/`;
+    const h3 = el("h3", "font-serif text-[1.15rem] font-bold leading-[1.48] text-ink");
+    const link = el("a", "headline-link", hit.h);
+    link.href = hit.u;
+    link.target = "_blank";
+    link.rel = "noopener";
+    h3.append(link);
+    const meta = el("p", "mt-1.5 flex flex-wrap items-center gap-x-2 font-sans text-[0.78rem] text-ink-3");
+    const source = el("a", "font-medium uppercase tracking-[0.12em] hover:text-ink", sources[hit.s] ?? hit.s);
+    source.href = `${base}source/${hit.s}/`;
+    const time = el("time", "", sinhalaDate(hit.d));
+    time.dateTime = hit.d;
+    meta.append(source, el("span", "", "·"), time);
+    wrap.append(kicker, h3, meta);
+    return wrap;
+  }
+
   function render() {
     const terms = normalize(input.value).split(" ").filter(Boolean);
-    const category = select.value;
-    list.replaceChildren();
+    results.replaceChildren();
     if (!terms.length && !category) {
-      status.textContent = "සෙවීමට වචනයක් ටයිප් කරන්න. · Type a word to search.";
+      status.textContent = "සෙවීමට වචනයක් ටයිප් කරන්න, නැතහොත් අංශයක් තෝරන්න. · Type a word or pick a section.";
       return;
     }
     const matches = index.filter(({ hit, key }) => (!category || hit.c === category) && terms.every((t) => key.includes(t)));
     status.textContent = matches.length
-      ? `ප්‍රතිඵල ${matches.length}${matches.length > MAX_RESULTS ? ` (පළමු ${MAX_RESULTS} පෙන්වයි)` : ""}`
+      ? `ප්‍රතිඵල ${matches.length}${matches.length > MAX_RESULTS ? ` · පළමු ${MAX_RESULTS} පෙන්වයි` : ""}`
       : "ප්‍රතිඵල නැත. · No results.";
+    results.append(...matches.slice(0, MAX_RESULTS).map(({ hit }) => story(hit)));
+  }
 
-    for (const { hit } of matches.slice(0, MAX_RESULTS)) {
-      const li = el("li", "px-4 py-3");
-      const link = el("a", "text-[1.05rem] font-semibold leading-relaxed hover:text-sky-700 hover:underline dark:hover:text-sky-300", hit.h);
-      link.href = hit.u;
-      link.target = "_blank";
-      link.rel = "noopener";
-      const meta = el("div", "mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-stone-400");
-      const chip = el("a", `rounded-full px-2 py-0.5 font-medium ${categories[hit.c]?.chip ?? ""}`, categories[hit.c]?.si ?? hit.c);
-      chip.href = `${base}category/${hit.c}/`;
-      const source = el("a", "hover:underline", sources[hit.s] ?? hit.s);
-      source.href = `${base}source/${hit.s}/`;
-      const time = el("time", "", hit.d);
-      time.dateTime = hit.d;
-      meta.append(chip, source, time);
-      li.append(link, meta);
-      list.append(li);
+  function selectCategory(value: string) {
+    category = value;
+    for (const button of buttons) {
+      const on = button.dataset.cat === value;
+      button.setAttribute("aria-pressed", String(on));
+      button.classList.remove(...(on ? IDLE : ACTIVE));
+      button.classList.add(...(on ? ACTIVE : IDLE));
     }
+    render();
   }
 
   let timer: number | undefined;
@@ -109,16 +143,15 @@ const sourceNames = Object.fromEntries(data.sources.map((s) => [s.id, s.name]));
   };
 
   status.textContent = "සිරස්තල පූරණය වෙමින්… · Loading…";
-  fetch(list.dataset.index ?? "search.json")
+  fetch(results.dataset.index ?? "search.json")
     .then((response) => response.json() as Promise<Hit[]>)
     .then((hits) => {
       index = hits.map((hit) => ({ hit, key: normalize(hit.h) }));
       const params = new URLSearchParams(location.search);
       input.value = params.get("q") ?? "";
-      select.value = params.get("c") ?? "";
-      render();
       input.addEventListener("input", schedule);
-      select.addEventListener("change", render);
+      for (const button of buttons) button.addEventListener("click", () => selectCategory(button.dataset.cat ?? ""));
+      selectCategory(params.get("c") ?? "");
       input.focus();
     })
     .catch(() => {
