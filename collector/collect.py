@@ -22,7 +22,7 @@ import feedparser
 from collector.categories import pick_category
 from collector.config import Config, Feed, Source, load_config
 from collector.fetch import Fetcher, FetchError
-from collector.sinhala_text import clean_headline, is_legacy_font_text
+from collector.sinhala_text import clean_headline, is_legacy_font_text, parse_sinhala_date
 from collector.storage import SeenIndex, append_rows, clean_url, load_seen
 
 log = logging.getLogger("collector")
@@ -38,14 +38,19 @@ def entry_terms(entry) -> list[str]:
 def entry_date(entry, now: datetime) -> str:
     """Publication date in Sri Lanka time, or today's date if the feed has none.
 
-    Ada Derana items, for example, carry no pubDate at all.
+    Some feeds carry no pubDate at all (Ada Derana); Ada.lk writes it with
+    Sinhala month names, which feedparser cannot read.
     """
+    today = now.astimezone(SRI_LANKA_TZ).date()
     parsed = entry.get("published_parsed") or entry.get("updated_parsed")
     if parsed:
         published = datetime(*parsed[:6], tzinfo=timezone.utc)
         if published <= now + timedelta(days=1):  # ignore obviously wrong future dates
             return published.astimezone(SRI_LANKA_TZ).date().isoformat()
-    return now.astimezone(SRI_LANKA_TZ).date().isoformat()
+    sinhala = parse_sinhala_date(entry.get("published") or entry.get("updated") or "")
+    if sinhala and sinhala <= today:
+        return sinhala.isoformat()
+    return today.isoformat()
 
 
 def process_entries(
