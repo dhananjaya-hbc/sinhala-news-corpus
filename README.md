@@ -1,0 +1,222 @@
+# Sinhala News Corpus
+
+[![Daily collect](https://github.com/dhananjaya-hbc/sinhala-news-corpus/actions/workflows/daily-collect.yml/badge.svg)](https://github.com/dhananjaya-hbc/sinhala-news-corpus/actions/workflows/daily-collect.yml)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
+[![Data: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-green.svg)](DATA_LICENSE.md)
+
+An open, growing dataset of **Sinhala news headlines with topic labels**.
+GitHub Actions collects it automatically every morning from public RSS
+feeds of Sri Lankan news sites, with no human in the loop.
+
+**Current size and label balance: see [STATS.md](STATS.md)** (updated on every run).
+
+## Why
+
+Sinhala is spoken by about 17 million people, yet it is a **low-resource
+language** for NLP. There are few openly licensed, labelled Sinhala text datasets, and
+much of the Sinhala text on the web is noisy in ways that break models:
+pre-Unicode "legacy font" text that is really Latin characters, inconsistent
+zero-width joiners, and HTML left over from content systems.
+
+This project builds a small but clean and steadily growing resource for one
+concrete task: **news topic classification**. Every row is a real headline,
+cleaned and normalised, with a label taken from the publisher's own section or
+category and mapped to a common label set.
+
+## What's in the dataset
+
+Monthly CSV files in [`data/raw/`](data/raw/), named `YYYY-MM.csv`, UTF-8, one headline per row:
+
+| Column | Example | Description |
+|---|---|---|
+| `date` | `2026-10-11` | Publication date in Sri Lanka time (UTC+5:30). If the feed gives no date, the collection date is used. |
+| `source` | `dinamina` | Source id, see the table below |
+| `headline` | `පාකිස්තානයට එරෙහි අද තරගයේදී ශ්‍රී ලංකා ...` | Cleaned headline (NFC, see [Cleaning](#cleaning)) |
+| `category` | `sports` | One of the 8 labels below |
+| `url` | `https://www.dinamina.lk/2026/10/11/...` | Link to the original article (tracking parameters removed) |
+| `collected_at` | `2026-10-11T01:00:42Z` | When the collector saw it (UTC) |
+
+A row goes into the file for the month it was **collected** in, so files are
+only ever appended to and each daily commit is a small diff.
+
+### Labels
+
+`politics` · `business` · `sports` · `international` · `entertainment` · `technology` · `local` · `other`
+
+Labels come from the publisher, not from a model. Each site's section names
+(e.g. Dinamina's `දේශපාලන`, Divaina's `විදෙස්`, Neth News' `Foreign News`)
+are mapped to this set in [`sources.yaml`](sources.yaml). When an item has
+several categories, the most specific one wins:
+`sports > entertainment > technology > business > international > politics > local > other`.
+`local` is the catch-all for general domestic news.
+
+### Loading it
+
+```python
+import glob
+import pandas as pd
+
+df = pd.concat(pd.read_csv(f) for f in sorted(glob.glob("data/raw/*.csv")))
+df["category"].value_counts()
+```
+
+## Sources
+
+| Source | Website | Feeds used | Where the label comes from |
+|---|---|---|---|
+| Ada Derana Sinhala (`adaderana`) | [sinhala.adaderana.lk](https://sinhala.adaderana.lk/) | `rss.php` | `<category>` tags (hot-news, international-news, sports-news, ...) |
+| Lankadeepa (`lankadeepa`) | [lankadeepa.lk](https://www.lankadeepa.lk/) | politics, business, world news, latest news | The section feed itself |
+| Dinamina (`dinamina`) | [dinamina.lk](https://www.dinamina.lk/) | sports, business, foreign, politics, main feed | WordPress categories |
+| Divaina (`divaina`) | [divaina.lk](https://www.divaina.lk/) | sports, business, foreign, main news, breaking news | WordPress categories and section feed |
+| Neth News (`nethnews`) | [nethnews.lk](https://www.nethnews.lk/) | sports, international, politics, main feed | WordPress categories |
+
+All headlines belong to these publishers; please credit them. To add or remove a
+source, edit [`sources.yaml`](sources.yaml); no code changes are needed.
+
+Sources that were evaluated but not used: Hiru News and ITN (no RSS feed),
+Newsfirst Sinhala (feed blocked, HTTP 403), BBC News Sinhala (excellent text but
+no categories in its feed), and several English-language or opinion/weekly sites.
+
+## How it works
+
+```
+GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka)
+  └─ pytest                    # the cleaning rules must pass first
+  └─ python -m collector.collect
+       for each source / feed in sources.yaml
+         check robots.txt → fetch feed (3 retries, backoff) → parse with feedparser
+         clean headline → skip legacy-font text → map category
+         skip if URL or normalised headline already stored
+       append new rows to data/raw/YYYY-MM.csv
+  └─ python scripts/stats.py   # regenerate STATS.md
+  └─ commit "data: daily headlines YYYY-MM-DD" only if something changed
+```
+
+- **One failing source never stops the others.** Each feed and each source is
+  isolated; failures are logged and the run continues. The job only fails if
+  *every* source fails.
+- **Retries:** network errors, timeouts, 429 and 5xx are retried 3 times
+  (waits of 2, 4, 8 s). Permanent errors like 403/404 are not retried.
+- **Deduplication** is checked against the whole history, on two keys: the URL
+  (ignoring `http/https`, `www.`, trailing `/`, percent-encoding and tracking
+  parameters) and the normalised headline (ignoring punctuation, quotes, spacing,
+  ZWJ and the case of embedded English). That catches the same story being
+  re-published under a new URL, or appearing in two feeds of the same site.
+- **Commit author** comes from the repository variables `COMMIT_NAME` and
+  `COMMIT_EMAIL`, falling back to `github-actions[bot]`.
+
+## Cleaning
+
+The rules are in [`collector/sinhala_text.py`](collector/sinhala_text.py), with
+tests built on real headlines in [`tests/test_sinhala_text.py`](tests/test_sinhala_text.py).
+
+1. **HTML:** tags are stripped and entities decoded, twice, because some feeds
+   double-escape (`&amp;quot;`).
+2. **Unicode NFC:** Sinhala vowel signs can be typed as two code points. For
+   example `ො` can arrive as `ෙ` (U+0DD9) + `ා` (U+0DCF). NFC turns them into the
+   single code point (U+0DDC) so identical words compare equal.
+3. **Invisible characters:** zero-width spaces, BOMs and soft hyphens are removed.
+   Lankadeepa really published `ප්‍රභාකරන්​ගේ` with a U+200B hidden inside.
+4. **Zero-width joiner (U+200D):** see below.
+5. **Whitespace:** runs of spaces, tabs, newlines and non-breaking spaces become
+   one space.
+6. **Site-name suffixes:** e.g. `… - Ada Derana Sinhala` or `… | දිවයින` are removed.
+
+### The ZWJ problem
+
+In Sinhala, the invisible **zero-width joiner** is part of correct spelling.
+It tells the renderer to join a consonant and the hal kirima (`්`) with the
+next letter into a special form:
+
+| Form | Example | Code points |
+|---|---|---|
+| rakaransaya | ශ්‍රී, ප්‍රවෘත්ති | consonant + `්` + ZWJ + `ර` |
+| yansaya | රාජ්‍ය | consonant + `්` + ZWJ + `ය` |
+| repaya | කාර්‍යය | `ර` + `්` + ZWJ + consonant |
+| touching letters | ලක්‍ෂ | consonant + `්` + ZWJ + consonant |
+
+Removing every ZWJ, as many generic "clean text" functions do, turns
+`ශ්‍රී ලංකාව` into `ශ්රී ලංකාව`, a different string that displays wrongly.
+Keeping every ZWJ leaves strays from copy/paste and CMS editors (after vowel
+signs, between words, doubled) that make identical headlines look different.
+The cleaner **keeps ZWJ only in the patterns above** (plus the older
+SLS 1134 order consonant + ZWJ + `්`) and removes the rest.
+
+### The legacy-font problem
+
+Before Unicode was widely used, Sinhala sites used fonts such as *FM Abhaya*
+that draw Sinhala letters on top of Latin code points. Without the font, the text
+`ශ්‍රී ලංකා රජය` is stored as **`Y%S ,xld rch`**. It is unreadable, and
+poison for a language model.
+
+The collector measures the share of letters in the Sinhala Unicode block
+(U+0D80–U+0DFF). Legacy text scores about 0; real headlines score near 1.0.
+Even brand-heavy press releases such as
+`Sumathi Information Technologies 25 වැනි සංවත්සරය සමරයි` stay above 0.35.
+Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and logged.
+
+## Ethics and copyright policy
+
+- **Headlines and links only.** The collector reads the RSS feed and saves the
+  headline, link, date and category. It **never** stores article text or
+  summaries, even when the feed includes them, and **never requests article pages**.
+- **robots.txt is respected.** It is checked before every feed request, both for
+  this project's user agent and for `*`. If robots.txt can't be reached, the
+  site is treated as disallowed (RFC 9309).
+- **Once per day,** with a 1 s pause between feeds of the same site: about 20 small
+  requests a day in total.
+- **Identifiable:** requests use the User-Agent
+  `sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)`.
+- **Credit and removal:** every row names its source and links back to it.
+  Publishers who want their source removed can open an issue.
+
+## License
+
+- **Code:** [MIT](LICENSE). Short and permissive, so anyone can reuse the
+  collector and cleaning functions for other Sinhala projects.
+- **Data:** [CC BY 4.0](DATA_LICENSE.md). It covers this project's
+  contribution: the selection, cleaning and labels. It allows any use,
+  including training and publishing models, with attribution. CC BY is the
+  usual choice for NLP datasets and works well on Hugging Face. The headlines
+  themselves stay the property of their publishers, which is why every row
+  keeps `source` and `url`.
+
+## Known limitations
+
+- Feeds only list their latest 10–25 items, so a daily snapshot captures part of
+  each site's output, not all of it. Section feeds are used where possible to
+  widen coverage.
+- Labels are the publishers' own categories: useful but noisy, and imbalanced
+  (`local` dominates; `technology` and `entertainment` are rare for now).
+- Ada Derana items carry no publication date; the collection date is used.
+
+## Running locally
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+python -m pytest                       # run the tests
+python -m collector.collect --dry-run  # fetch and report, write nothing
+python -m collector.collect            # append new headlines to data/raw/
+python scripts/stats.py                # regenerate STATS.md
+```
+
+## Roadmap
+
+- [x] Daily automated collection with cleaning and deduplication
+- [ ] **EDA:** label balance, headline length, vocabulary, and duplicate stories across sources
+- [ ] **Baseline classifier:** TF-IDF (character n-grams) + logistic regression / linear SVM
+- [ ] **Transformer fine-tuning:** XLM-R and Sinhala models such as SinBERT
+- [ ] **Hugging Face dataset release** with fixed train/validation/test splits
+- [ ] More sources, possibly including unlabelled feeds such as BBC Sinhala for pre-training text
+
+## Citation
+
+```bibtex
+@misc{sinhala_news_corpus,
+  author       = {Dhananjaya Chamod},
+  title        = {Sinhala News Corpus: daily Sinhala news headlines with topic labels},
+  year         = {2026},
+  howpublished = {\url{https://github.com/dhananjaya-hbc/sinhala-news-corpus}}
+}
+```
