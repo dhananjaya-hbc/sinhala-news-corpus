@@ -10,6 +10,7 @@ import html
 import re
 import unicodedata
 from collections.abc import Iterable
+from datetime import date
 
 SINHALA_BLOCK = ("඀", "෿")
 ZWJ = "‍"  # zero-width joiner
@@ -153,3 +154,39 @@ def headline_key(text: str) -> str:
     text = clean_headline(text).replace(ZWJ, "").replace(ZWNJ, "").casefold()
     text = "".join(ch for ch in text if unicodedata.category(ch)[0] not in "PS")
     return collapse_whitespace(text)
+
+
+_SINHALA_MONTHS = {
+    "ජනවාරි": 1,
+    "පෙබරවාරි": 2,
+    "මාර්තු": 3,
+    "අප්රේල්": 4,
+    "මැයි": 5,
+    "ජූනි": 6,
+    "ජූලි": 7,
+    "අගෝස්තු": 8,
+    "සැප්තැම්බර්": 9,
+    "ඔක්තෝබර්": 10,
+    "නොවැම්බර්": 11,
+    "දෙසැම්බර්": 12,
+}
+_SINHALA_DATE_RE = re.compile(r"(\d{4})\s+([\u0d80-\u0dff]+)\s+(?:මස\s+)?(\d{1,2})\b")
+
+
+def parse_sinhala_date(text: str) -> date | None:
+    """Parse dates written with Sinhala month names, as Ada.lk's feed does.
+
+    "2026 ඔක්තෝබර් මස 08 ප.ව. 06:19" -> date(2026, 10, 8). The time is
+    ignored. Returns None if the text is not in this format.
+    """
+    text = unicodedata.normalize("NFC", text or "").replace(ZWJ, "")
+    match = _SINHALA_DATE_RE.search(text)
+    if not match:
+        return None
+    month = _SINHALA_MONTHS.get(match.group(2))
+    if not month:
+        return None
+    try:
+        return date(int(match.group(1)), month, int(match.group(3)))
+    except ValueError:
+        return None
