@@ -1,0 +1,128 @@
+# News sources for sinhala-news-corpus.
+#
+# To add a source: append an entry under `sources`. To pause one, set
+# `enabled: false`. Only RSS/Atom feeds are fetched -- never article pages.
+#
+#   id              short ascii name, written to the `source` column
+#   feeds           feed URLs, in priority order. List specific category feeds
+#                   before general ones: when the same story appears in two
+#                   feeds, the first one seen keeps its label.
+#   default_category  label for items whose feed tags don't map to anything
+#   category_map    the site's own category names -> corpus label
+#                   (politics, business, sports, international,
+#                    entertainment, technology, local, other).
+#                   Matching ignores case, ZWJ and zero-width spaces.
+#                   Tags not listed here are ignored.
+#   title_suffixes  site names to strip from the end of headlines
+
+settings:
+  user_agent: "sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)"
+  timeout: 30          # seconds per request
+  retries: 3           # retries after the first attempt, for network errors / 429 / 5xx
+  backoff: 2.0         # seconds; doubles after each retry (2, 4, 8)
+  min_sinhala_ratio: 0.5   # below this share of Sinhala letters a headline is treated as legacy-font text and skipped
+
+sources:
+  - id: adaderana
+    name: Ada Derana Sinhala
+    homepage: https://sinhala.adaderana.lk/
+    title_suffixes: ["Ada Derana Sinhala", "Ada Derana", "අද දෙරණ"]
+    feeds:
+      - url: https://sinhala.adaderana.lk/rss.php
+        default_category: other
+    category_map:
+      hot-news: local
+      international-news: international
+      sports-news: sports
+      business-news: business
+      entertainment-news: entertainment
+      technology-news: technology
+      feature-news: other
+      other-news: other
+
+  - id: lankadeepa
+    name: Lankadeepa
+    homepage: https://www.lankadeepa.lk/
+    title_suffixes: ["Lankadeepa", "ලංකාදීප"]
+    # Lankadeepa feeds carry no category tags; the section comes from the feed.
+    feeds:
+      - url: https://www.lankadeepa.lk/rss/politics/13
+        default_category: politics
+      - url: https://www.lankadeepa.lk/rss/business/9
+        default_category: business
+      - url: https://www.lankadeepa.lk/rss/world_news/14
+        default_category: international
+      - url: https://www.lankadeepa.lk/rss/latest_news/1
+        default_category: local
+
+  - id: dinamina
+    name: Dinamina
+    homepage: https://www.dinamina.lk/
+    title_suffixes: ["Dinamina", "දිනමිණ"]
+    feeds:
+      - url: https://www.dinamina.lk/category/sports/feed/
+        default_category: sports
+      - url: https://www.dinamina.lk/category/business/feed/
+        default_category: business
+      - url: https://www.dinamina.lk/category/foreign/feed/
+        default_category: international
+      - url: https://www.dinamina.lk/category/politics/feed/
+        default_category: politics
+      - url: https://www.dinamina.lk/feed/
+        default_category: local
+    category_map:
+      ක්‍රීඩා: sports
+      ව්‍යාපාරික: business
+      විදෙස්: international
+      දේශපාලන: politics
+      අතන මෙතන Gossip: entertainment
+      දේශීය පුවත්: local
+      ප්‍රාදේශීය පුවත්: local
+      අධිකරණ හා පොලිස්: local
+      විශේෂාංග: other
+      කතුවැකිය: other
+
+  - id: divaina
+    name: Divaina
+    homepage: https://www.divaina.lk/
+    title_suffixes: ["Divaina", "දිවයින"]
+    feeds:
+      - url: https://www.divaina.lk/category/sports-news/feed
+        default_category: sports
+      - url: https://www.divaina.lk/category/business-news/feed
+        default_category: business
+      - url: https://www.divaina.lk/category/foreign-news/feed
+        default_category: international
+      - url: https://www.divaina.lk/category/main-news/feed
+        default_category: local
+      - url: https://www.divaina.lk/category/breaking-news/feed
+        default_category: local
+    category_map:
+      ක්‍රීඩා: sports
+      ගණුදෙනු ලොව: business
+      විදෙස්: international
+      ප්‍රාදේශීය පුවත්: local
+      විශේෂාංග: other
+      කතුවැකි: other
+
+  - id: nethnews
+    name: Neth News
+    homepage: https://www.nethnews.lk/
+    title_suffixes: ["Neth News", "NethNews", "නෙත් නිව්ස්"]
+    feeds:
+      - url: https://www.nethnews.lk/sports/feed/
+        default_category: sports
+      - url: https://www.nethnews.lk/international-news/feed/
+        default_category: international
+      - url: https://www.nethnews.lk/politics/feed/
+        default_category: politics
+      - url: https://www.nethnews.lk/feed/
+        default_category: local
+    category_map:
+      Sports: sports
+      Foreign News: international
+      International News: international
+      Politics: politics
+      National Politics: politics
+      Local News: local
+      Crime & Law: local
