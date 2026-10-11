@@ -1,69 +1,84 @@
 ---
+import Label from "../components/Label.astro";
 import Base from "../layouts/Base.astro";
-import { CATEGORIES, REPO_URL, data } from "../lib/data";
+import { CATEGORIES, REPO_URL, SECTION_ORDER, data } from "../lib/data";
 
 const nf = new Intl.NumberFormat("en-US");
-const prose = "space-y-3 text-stone-700 dark:text-stone-300";
-const h2 = "mt-8 mb-2 text-lg font-bold";
-const a = "underline hover:text-sky-700 dark:hover:text-sky-300";
+const h2 = "mt-12 mb-3 border-t-2 border-ink pt-3 font-serif text-[1.7rem] font-extrabold leading-tight";
+const a = "underline decoration-rule underline-offset-4 hover:text-accent";
 ---
 
-<Base title="About" active="about" description="About the Sinhala News Corpus: an open, labelled dataset of Sinhala news headlines.">
-  <h1 class="mb-4 text-2xl font-bold">About · මෙම වෙබ් අඩවිය ගැන</h1>
-
-  <div class={prose}>
-    <p>
-      This site is the public face of the <a class={a} href={REPO_URL}>Sinhala News Corpus</a>: an open, growing dataset of
-      Sinhala news headlines with topic labels, built for Sinhala natural-language processing. Sinhala is a low-resource
-      language, and clean, labelled Sinhala text is scarce.
+<Base title="About" active="about" compact description="About the Sinhala News Corpus: an open, labelled dataset of Sinhala news headlines.">
+  <article class="mx-auto max-w-[44rem]">
+    <Label si="මෙම පුවත්පත ගැන" en="About" />
+    <h1 class="mt-1 font-serif text-[2.6rem] font-extrabold leading-[1.15] sm:text-[3.4rem]">
+      පුවත්පතක් නොවේ. පුවත් දත්ත ගබඩාවකි.
+    </h1>
+    <p class="mt-3 font-serif text-xl leading-relaxed text-ink-2">
+      Not a newspaper: an open dataset of Sinhala news headlines, laid out like one.
     </p>
-    <p>
-      මෙය සිංහල භාෂා තාක්ෂණ පර්යේෂණ සඳහා විවෘත දත්ත ව්‍යාපෘතියකි. සිරස්තල සහ මුල් ලිපියට යොමුව පමණක් ගබඩා කෙරේ.
+
+    <div class="mt-8 space-y-4 text-[1.05rem] leading-[1.8] text-ink-2">
+      <p class="first-letter:float-left first-letter:mr-2 first-letter:mt-1 first-letter:font-serif first-letter:text-[4.2rem] first-letter:font-extrabold first-letter:leading-[0.8] first-letter:text-accent">
+        Sinhala is spoken by about seventeen million people, yet it is a low-resource language for computers. Clean, labelled
+        Sinhala text is scarce, and much of what exists is broken by legacy fonts and invisible characters. The{" "}
+        <a class={a} href={REPO_URL}>Sinhala News Corpus</a> collects news headlines every morning, cleans them carefully, and
+        labels each one by topic, so that researchers can train and test Sinhala language models.
+      </p>
+      <p>
+        මෙය සිංහල භාෂා තාක්ෂණ පර්යේෂණ සඳහා විවෘත දත්ත ව්‍යාපෘතියකි. සිරස්තලය, මුල් ලිපියට යොමුව, දිනය සහ මාතෘකාව පමණක් ගබඩා
+        කෙරේ.
+      </p>
+    </div>
+
+    <blockquote class="my-10 border-y-2 border-ink py-6 text-center font-serif text-[1.6rem] font-bold leading-snug sm:text-[1.9rem]">
+      සිරස්තල සහ සබැඳි පමණි. ලිපි පිටපත් නොකෙරේ.
+      <span class="mt-2 block font-sans text-xs font-medium uppercase tracking-[0.25em] text-ink-3">Headlines and links only</span>
+    </blockquote>
+
+    <h2 class="mb-3 font-serif text-[1.7rem] font-extrabold leading-tight">How it works</h2>
+    <p class="leading-[1.8] text-ink-2">
+      Every day at 06:30 Sri Lanka time, a GitHub Actions job reads the public RSS feeds of {data.sources.length} news sites. Each
+      headline is normalised (Unicode NFC), its zero-width joiners are kept only where they form letters like ශ්‍රී and ප්‍ර,
+      legacy-font text is rejected, and duplicates are removed. The topic comes from the publisher's own section. The dataset holds{" "}
+      <strong class="text-ink">{nf.format(data.total_all_time)}</strong> headlines so far; this site shows the last {data.days} days.
     </p>
-  </div>
 
-  <h2 class={h2}>How it works</h2>
-  <div class={prose}>
-    <p>
-      Every day a GitHub Actions job reads the public RSS feeds of {data.sources.length} Sri Lankan news sites, cleans each
-      headline (Unicode NFC, correct handling of the zero-width joiner in ශ්‍රී and ප්‍ර, removal of legacy-font text),
-      removes duplicates, and labels it with the publisher's own section. The dataset currently holds{" "}
-      <strong>{nf.format(data.total_all_time)}</strong> headlines; this site shows the last {data.days} days.
+    <h2 class={h2}>Publishers</h2>
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-ink font-sans text-[0.66rem] uppercase tracking-[0.2em] text-ink-3">
+        <tr><th class="py-2 font-medium">Publisher</th><th class="py-2 text-right font-medium">Headlines</th></tr>
+      </thead>
+      <tbody class="divide-y divide-rule">
+        {
+          data.sources.map((s) => (
+            <tr>
+              <td class="py-2"><a class={a} href={s.homepage} target="_blank" rel="noopener">{s.name}</a></td>
+              <td class="py-2 text-right tabular-nums text-ink-2">{nf.format(s.count)}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    <h2 class={h2}>Sections</h2>
+    <p class="leading-[1.8] text-ink-2">
+      {[...SECTION_ORDER, "other" as const].map((c) => `${CATEGORIES[c].si} (${CATEGORIES[c].en})`).join(" · ")}
     </p>
-  </div>
 
-  <h2 class={h2}>Sources</h2>
-  <ul class="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900">
-    {
-      data.sources.map((s) => (
-        <li class="flex items-center justify-between gap-4 px-4 py-2">
-          <a class={a} href={s.homepage} target="_blank" rel="noopener">{s.name}</a>
-          <span class="text-sm tabular-nums text-stone-500">{nf.format(s.count)}</span>
-        </li>
-      ))
-    }
-  </ul>
+    <h2 class={h2}>Copyright and ethics</h2>
+    <ul class="list-disc space-y-2 pl-5 leading-[1.8] text-ink-2 marker:text-accent">
+      <li>Only the headline, link, date and topic are stored. Article text and images are never copied, and article pages are never requested.</li>
+      <li>Headlines remain the property of their publishers. Every headline links to the original article, so readers go to the publisher.</li>
+      <li>robots.txt is checked before every request, and each site is visited once a day.</li>
+      <li>Publishers who want their headlines removed can <a class={a} href={`${REPO_URL}/issues/new`}>open an issue</a>; the source will be disabled and its rows removed.</li>
+    </ul>
 
-  <h2 class={h2}>Topics</h2>
-  <p class={prose}>
-    {Object.values(CATEGORIES).map((c) => `${c.si} (${c.en})`).join(" · ")}
-  </p>
-
-  <h2 class={h2}>Copyright and ethics</h2>
-  <ul class:list={[prose, "list-disc pl-5"]}>
-    <li>Only the headline, link, date and topic are stored. Article text and images are never copied, and article pages are never requested.</li>
-    <li>Headlines remain the property of their publishers. Every headline links to the original article, so readers go to the publisher's site.</li>
-    <li>robots.txt is checked before every request, and each site is visited once a day.</li>
-    <li>
-      Publishers who want their headlines removed can <a class={a} href={`${REPO_URL}/issues/new`}>open an issue</a>; the source will
-      be disabled and its rows removed.
-    </li>
-  </ul>
-
-  <h2 class={h2}>Use the data</h2>
-  <p class={prose}>
-    Download the CSV files from <a class={a} href={`${REPO_URL}/tree/main/data/raw`}>data/raw</a>
-    (<a class={a} href={`${REPO_URL}/blob/main/DATA_LICENSE.md`}>CC BY 4.0</a>). Statistics are in
-    <a class={a} href={`${REPO_URL}/blob/main/STATS.md`}>STATS.md</a>.
-  </p>
+    <h2 class={h2}>Use the data</h2>
+    <p class="leading-[1.8] text-ink-2">
+      Download the monthly CSV files from <a class={a} href={`${REPO_URL}/tree/main/data/raw`}>data/raw</a>, licensed
+      <a class={a} href={`${REPO_URL}/blob/main/DATA_LICENSE.md`}>CC BY 4.0</a>. Counts per source and topic are in
+      <a class={a} href={`${REPO_URL}/blob/main/STATS.md`}>STATS.md</a>.
+    </p>
+  </article>
 </Base>
