@@ -23,6 +23,8 @@ AL_LAKUNA = "්"  # ් (hal kirima / virama)
 _INVISIBLE = dict.fromkeys(map(ord, "​⁠﻿­"), None)
 
 _TAG_RE = re.compile(r"<[^<>]+>")
+# consonant + ZWJ + ් + (ර | ය): converter-style rakaransaya / yansaya
+_OLD_RAKAR_YANSA_RE = re.compile("([\u0d9a-\u0dc6])\u200d\u0dca([\u0dbb\u0dba])")
 _WS_RE = re.compile(r"\s+")
 _SUFFIX_SEP = r"\s*[-–—|:•]\s*"
 
@@ -69,7 +71,13 @@ def fix_zwj(text: str) -> str:
 
     Anything else (ZWJ after a vowel sign, next to a space, at the end of a
     word, doubled) is a stray character from copy/paste or a CMS and is removed.
+
+    Old font converters write ප්‍ර as ප + ZWJ + ් + ZWJ + ර (Lanka C News does),
+    or with only the first ZWJ. Sinhala has no touching-letter form with ර or
+    ය, so both are rewritten to the standard ප + ් + ZWJ + ර first.
     """
+    text = text.replace(ZWJ + AL_LAKUNA + ZWJ, AL_LAKUNA + ZWJ)
+    text = _OLD_RAKAR_YANSA_RE.sub("\\1" + AL_LAKUNA + ZWJ + "\\2", text)
     out: list[str] = []
     for i, ch in enumerate(text):
         if ch != ZWJ:
