@@ -44,7 +44,8 @@ jobs:
           COMMIT_NAME: ${{ vars.COMMIT_NAME || 'github-actions[bot]' }}
           COMMIT_EMAIL: ${{ vars.COMMIT_EMAIL || '41898282+github-actions[bot]@users.noreply.github.com' }}
         run: |
-          git add data STATS.md
+          git add STATS.md
+          if [ -d data ]; then git add data; fi
           if git diff --cached --quiet; then
             echo "No new headlines; nothing to commit."
             exit 0
