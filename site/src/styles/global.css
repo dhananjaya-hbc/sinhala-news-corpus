@@ -5,8 +5,16 @@
   --font-sans: "Noto Sans Sinhala", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* Dark mode follows the .dark class on <html>, set from the reader's saved
+   choice or their system setting (see the theme script in Base.astro). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
 }
 
 body {
