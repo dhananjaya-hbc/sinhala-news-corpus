@@ -9,10 +9,11 @@ UA = "sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-c
 
 
 class FakeResponse:
-    def __init__(self, status_code=200, text=""):
+    def __init__(self, status_code=200, text="", headers=None):
         self.status_code = status_code
         self.text = text
         self.content = text.encode("utf-8")
+        self.headers = headers or {}
 
 
 class FakeSession:
@@ -67,8 +68,8 @@ def test_gives_up_after_three_retries():
 
 
 def test_permanent_error_not_retried():
-    fetcher, sleeps = make({ROBOTS: [FakeResponse(404)], FEED: [FakeResponse(403)]})
-    with pytest.raises(FetchError, match="HTTP 403"):
+    fetcher, sleeps = make({ROBOTS: [FakeResponse(404)], FEED: [FakeResponse(403, headers={"Server": "cloudflare"})]})
+    with pytest.raises(FetchError, match=r"HTTP 403 \(server: cloudflare\)"):
         fetcher.fetch_feed(FEED)
     assert fetcher.session.calls.count(FEED) == 1
     assert sleeps == []
