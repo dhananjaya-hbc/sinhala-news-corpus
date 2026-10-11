@@ -1,7 +1,8 @@
 ---
-import HeadlineList from "../../components/HeadlineList.astro";
+import HeadlineColumns from "../../components/HeadlineColumns.astro";
+import Label from "../../components/Label.astro";
 import Base from "../../layouts/Base.astro";
-import { CATEGORIES, CATEGORY_IDS, data, type CategoryId } from "../../lib/data";
+import { CATEGORIES, CATEGORY_IDS, countBy, data, sourceName, url, type CategoryId } from "../../lib/data";
 
 export function getStaticPaths() {
   return CATEGORY_IDS.map((id) => ({ params: { id } }));
@@ -10,14 +11,34 @@ export function getStaticPaths() {
 const id = Astro.params.id as CategoryId;
 const category = CATEGORIES[id];
 const headlines = data.headlines.filter((h) => h.c === id);
+const bySource = [...countBy(headlines, (h) => h.s).entries()].sort((a, b) => b[1] - a[1]);
 ---
 
-<Base title={category.si} active={id} description={`Latest Sinhala ${category.en.toLowerCase()} news headlines from Sri Lankan publishers.`}>
-  <header class="mb-6">
-    <h1 class="text-2xl font-bold">{category.si} <span class="text-lg font-normal text-stone-500">· {category.en}</span></h1>
-    <p class="text-sm text-stone-500 dark:text-stone-400">
-      පසුගිය දින {data.days} තුළ සිරස්තල {headlines.length} · {headlines.length} headlines in the last {data.days} days
-    </p>
+<Base title={category.si} active={id} compact description={`Latest Sinhala ${category.en.toLowerCase()} news headlines from Sri Lankan publishers.`}>
+  <header class="mb-8 grid gap-4 border-b-2 border-ink pb-6 sm:grid-cols-[1fr_auto] sm:items-end">
+    <div>
+      <Label si="අංශය" en="Section" />
+      <h1 class="mt-1 font-serif text-[3.2rem] font-extrabold leading-[1.1] sm:text-[4.2rem]">{category.si}</h1>
+      <p class="mt-1 font-sans text-xs uppercase tracking-[0.32em] text-ink-2">{category.en}</p>
+    </div>
+    <div class="text-sm text-ink-2 sm:text-right">
+      <p>
+        <span class="font-serif text-3xl font-extrabold text-ink tabular-nums">{headlines.length}</span>
+        <span class="ml-1">සිරස්තල · පසුගිය දින {data.days}</span>
+      </p>
+      {
+        bySource.length > 0 && (
+          <p class="mt-1 text-ink-3">
+            {bySource.map(([s, n], i) => (
+              <>
+                {i > 0 && " · "}
+                <a href={url(`source/${s}/`)} class="hover:text-accent">{sourceName(s)}</a> {n}
+              </>
+            ))}
+          </p>
+        )
+      }
+    </div>
   </header>
-  <HeadlineList headlines={headlines} showCategory={false} />
+  <HeadlineColumns headlines={headlines} showCategory={false} />
 </Base>
