@@ -98,5 +98,7 @@ class Fetcher:
             raise RobotsDisallowed(f"{url}: disallowed by robots.txt")
         resp = self._request(url)
         if resp.status_code != 200:
-            raise FetchError(f"{url}: HTTP {resp.status_code}")
+            # The Server header shows who refused us (e.g. "cloudflare" for a CDN firewall)
+            server = resp.headers.get("Server", "unknown")
+            raise FetchError(f"{url}: HTTP {resp.status_code} (server: {server})")
         return resp.content
