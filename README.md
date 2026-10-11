@@ -3,12 +3,14 @@
 [![Daily collect](https://github.com/dhananjaya-hbc/sinhala-news-corpus/actions/workflows/daily-collect.yml/badge.svg)](https://github.com/dhananjaya-hbc/sinhala-news-corpus/actions/workflows/daily-collect.yml)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Data: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-green.svg)](DATA_LICENSE.md)
+[![Website](https://img.shields.io/badge/website-live-orange.svg)](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)
 
 An open, growing dataset of **Sinhala news headlines with topic labels**.
 GitHub Actions collects it automatically every morning from public RSS
 feeds of Sri Lankan news sites, with no human in the loop.
 
-**Current size and label balance: see [STATS.md](STATS.md)** (updated on every run).
+**Browse the latest headlines: [dhananjaya-hbc.github.io/sinhala-news-corpus](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)**
+· **Size and label balance: [STATS.md](STATS.md)** (both updated on every run).
 
 ## Why
 
@@ -104,6 +106,7 @@ GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka)
        append new rows to data/raw/YYYY-MM.csv
   └─ python scripts/stats.py   # regenerate STATS.md
   └─ commit "data: daily headlines YYYY-MM-DD" only if something changed
+  └─ rebuild and deploy the website (deploy-site.yml)
 ```
 
 - **One failing source never stops the others.** Each feed and each source is
@@ -118,6 +121,23 @@ GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka)
   re-published under a new URL, or appearing in two feeds of the same site.
 - **Commit author** comes from the repository variables `COMMIT_NAME` and
   `COMMIT_EMAIL`, falling back to `github-actions[bot]`.
+
+## Website
+
+[dhananjaya-hbc.github.io/sinhala-news-corpus](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)
+shows the last 30 days of headlines by topic and by source, with search.
+Every headline links to the publisher's own article.
+
+- **Stack:** [Astro](https://astro.build/) (static output), TypeScript, Tailwind CSS,
+  self-hosted Noto Sans Sinhala, hosted on GitHub Pages. It ships almost no
+  JavaScript, so pages load fast on mobile data.
+- **Data:** `scripts/export_site_data.py` writes the recent rows to
+  `site/src/data/site-data.json` at build time; the CSVs stay the source of truth.
+- **Search** runs in the browser over a small JSON index. Queries and headlines are
+  normalised the same way as the corpus (NFC, ZWJ removed), so typing `ශ්රී`
+  without a ZWJ still finds `ශ්‍රී`.
+- **Deploys** after every daily collection, on changes to `site/`, or manually
+  from the Actions tab.
 
 ## Cleaning
 
@@ -225,11 +245,16 @@ python -m collector.collect            # append new headlines to data/raw/
 python scripts/stats.py                # regenerate STATS.md
 python scripts/reclean.py --dry-run    # preview re-cleaning stored headlines
 python scripts/check_feeds.py URL ...  # test a feed before adding it
+
+# website (Node 22.12+)
+python scripts/export_site_data.py     # export recent headlines for the site
+cd site && npm install && npm run dev  # http://localhost:4321/sinhala-news-corpus/
 ```
 
 ## Roadmap
 
 - [x] Daily automated collection with cleaning and deduplication
+- [x] Website with topic and source pages and Sinhala-aware search
 - [ ] **EDA:** label balance, headline length, vocabulary, and duplicate stories across sources
 - [ ] **Baseline classifier:** TF-IDF (character n-grams) + logistic regression / linear SVM
 - [ ] **Transformer fine-tuning:** XLM-R and Sinhala models such as SinBERT
