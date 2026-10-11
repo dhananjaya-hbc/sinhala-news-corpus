@@ -18,7 +18,8 @@ export interface Source {
 }
 
 export interface SiteData {
-  generated_from: string | null;
+  generated_from: string | null; // last collection time (UTC)
+  first_collected: string | null; // first collection time (UTC)
   days: number;
   total_all_time: number;
   headlines: Headline[];
@@ -29,18 +30,21 @@ export interface SiteData {
 export const data = raw as SiteData;
 
 export const CATEGORIES = {
-  politics: { si: "දේශපාලන", en: "Politics", chip: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200" },
-  business: { si: "ව්‍යාපාර", en: "Business", chip: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200" },
-  sports: { si: "ක්‍රීඩා", en: "Sports", chip: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200" },
-  international: { si: "විදෙස්", en: "International", chip: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200" },
-  entertainment: { si: "විනෝදාස්වාද", en: "Entertainment", chip: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-200" },
-  technology: { si: "තාක්ෂණ", en: "Technology", chip: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200" },
-  local: { si: "දේශීය", en: "Local", chip: "bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200" },
-  other: { si: "වෙනත්", en: "Other", chip: "bg-stone-100 text-stone-600 dark:bg-stone-900 dark:text-stone-400" },
+  politics: { si: "දේශපාලන", en: "Politics" },
+  business: { si: "ව්‍යාපාර", en: "Business" },
+  sports: { si: "ක්‍රීඩා", en: "Sports" },
+  international: { si: "විදෙස්", en: "World" },
+  entertainment: { si: "විනෝදාස්වාද", en: "Entertainment" },
+  technology: { si: "තාක්ෂණ", en: "Technology" },
+  local: { si: "දේශීය", en: "Local" },
+  other: { si: "වෙනත්", en: "Other" },
 } as const;
 
 export type CategoryId = keyof typeof CATEGORIES;
 export const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
+
+/** Order of sections on the front page and in the section nav. */
+export const SECTION_ORDER: CategoryId[] = ["politics", "business", "international", "sports", "technology", "entertainment", "local"];
 
 export const REPO_URL = "https://github.com/dhananjaya-hbc/sinhala-news-corpus";
 
@@ -55,10 +59,9 @@ export function url(path = ""): string {
   return import.meta.env.BASE_URL + path.replace(/^\//, "");
 }
 
-/** Count headlines per category in the recent window. */
-export function recentCategoryCounts(headlines: Headline[] = data.headlines): Record<CategoryId, number> {
-  const counts = Object.fromEntries(CATEGORY_IDS.map((c) => [c, 0])) as Record<CategoryId, number>;
-  for (const h of headlines) counts[h.c] += 1;
+export function countBy<K extends string>(headlines: Headline[], key: (h: Headline) => K): Map<K, number> {
+  const counts = new Map<K, number>();
+  for (const h of headlines) counts.set(key(h), (counts.get(key(h)) ?? 0) + 1);
   return counts;
 }
 
@@ -73,9 +76,79 @@ export function groupByDate(headlines: Headline[]): [string, Headline[]][] {
   return [...groups.entries()];
 }
 
-const sinhalaDate = new Intl.DateTimeFormat("si-LK", { dateStyle: "full", timeZone: "UTC" });
+// --- Dates -----------------------------------------------------------------
+
+const atMidnight = (isoDate: string) => new Date(`${isoDate}T00:00:00Z`);
+const fullDate = new Intl.DateTimeFormat("si-LK", { dateStyle: "full", timeZone: "UTC" });
+const longDate = new Intl.DateTimeFormat("si-LK", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+const weekday = new Intl.DateTimeFormat("si-LK", { weekday: "long", timeZone: "UTC" });
 
 /** "2026-10-11" -> "2026 ඔක්තෝබර් 11, ඉරිදා" */
-export function formatDate(isoDate: string): string {
-  return sinhalaDate.format(new Date(`${isoDate}T00:00:00Z`));
+export const formatDate = (isoDate: string) => fullDate.format(atMidnight(isoDate));
+/** "2026-10-11" -> "2026 ඔක්තෝබර් 11" */
+export const formatLongDate = (isoDate: string) => longDate.format(atMidnight(isoDate));
+/** "2026-10-11" -> "ඉරිදා" */
+export const formatWeekday = (isoDate: string) => weekday.format(atMidnight(isoDate));
+
+/** UTC timestamp -> calendar date in Sri Lanka (UTC+5:30, no DST). */
+const sriLankaDate = (utc: string) => new Date(Date.parse(utc) + 5.5 * 3_600_000).toISOString().slice(0, 10);
+
+/** Date of this edition: the day of the latest collection. */
+export const editionDate = data.generated_from ? sriLankaDate(data.generated_from) : (data.headlines[0]?.d ?? "");
+
+/** Edition number, like a newspaper issue: day 1 is the first collection. */
+export const editionNumber =
+  data.generated_from && data.first_collected
+    ? Math.round((Date.parse(sriLankaDate(data.generated_from)) - Date.parse(sriLankaDate(data.first_collected))) / 86_400_000) + 1
+    : 1;
+
+// --- Front page --------------------------------------------------------------
+
+export interface FrontPage {
+  lead?: Headline;
+  also: Headline[];
+  sections: { id: CategoryId; items: Headline[] }[];
+  latestDay?: string;
+  latestCount: number;
+}
+
+/**
+ * Lay out the front page: a lead story from the latest day, an "also today"
+ * strip that takes one story per section in turn (so it isn't all one topic),
+ * then a block per section with its newest remaining stories.
+ */
+export function frontPage(headlines: Headline[] = data.headlines, alsoCount = 6, perSection = 5): FrontPage {
+  const latestDay = headlines[0]?.d;
+  const latest = headlines.filter((h) => h.d === latestDay);
+  const leadPreference: CategoryId[] = ["politics", "international", "business", "local"];
+  const lead = leadPreference.map((c) => latest.find((h) => h.c === c)).find(Boolean) ?? latest[0];
+
+  const used = new Set(lead ? [lead.u] : []);
+  const take = (h?: Headline) => {
+    if (h && !used.has(h.u)) {
+      used.add(h.u);
+      return h;
+    }
+  };
+
+  const also: Headline[] = [];
+  for (let round = 0; also.length < alsoCount && round < alsoCount; round++) {
+    for (const c of SECTION_ORDER) {
+      if (also.length >= alsoCount) break;
+      const pick = take(latest.find((h) => h.c === c && !used.has(h.u)));
+      if (pick) also.push(pick);
+    }
+  }
+  for (const h of latest) {
+    if (also.length >= alsoCount) break;
+    const pick = take(h);
+    if (pick) also.push(pick);
+  }
+
+  const sections = SECTION_ORDER.map((id) => ({
+    id,
+    items: headlines.filter((h) => h.c === id && !used.has(h.u)).slice(0, perSection),
+  })).filter((s) => s.items.length > 0);
+
+  return { lead, also, sections, latestDay, latestCount: latest.length };
 }
