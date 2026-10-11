@@ -1,0 +1,39 @@
+---
+import { formatDate, groupByDate, type Headline } from "../lib/data";
+import Story from "./Story.astro";
+
+interface Props {
+  headlines: Headline[];
+  showCategory?: boolean;
+  showSource?: boolean;
+}
+
+const { headlines, showCategory = true, showSource = true } = Astro.props;
+const groups = groupByDate(headlines);
+---
+
+{
+  groups.length === 0 ? (
+    <p class="border-y border-rule py-12 text-center font-serif text-xl text-ink-2">
+      මෙම අංශයේ මෑත සිරස්තල නැත.
+      <span class="mt-1 block font-sans text-sm text-ink-3">No recent headlines in this section yet.</span>
+    </p>
+  ) : (
+    <div class="news-columns md:columns-2 lg:columns-3">
+      {groups.map(([day, items], i) => (
+        <>
+          <h2 class:list={["span-all flex items-center gap-4 font-sans text-sm font-semibold text-ink-2", i === 0 ? "mb-2" : "mb-2 mt-10"]}>
+            <time datetime={day} class="shrink-0">{formatDate(day)}</time>
+            <span class="h-px flex-1 bg-ink" aria-hidden="true" />
+            <span class="shrink-0 font-normal text-ink-3">{items.length}</span>
+          </h2>
+          {items.map((h) => (
+            <div class="border-b border-rule py-4">
+              <Story h={h} kicker={showCategory} source={showSource} />
+            </div>
+          ))}
+        </>
+      ))}
+    </div>
+  )
+}
