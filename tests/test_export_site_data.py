@@ -31,6 +31,13 @@ def test_keeps_only_last_n_days_newest_first():
     assert data["total_all_time"] == 4
 
 
+def test_first_and_last_collection_times():
+    rows = [_row(1, "2026-10-11", collected="2026-10-12T01:00:00Z"), _row(2, "2026-10-01", collected="2026-10-11T01:00:00Z")]
+    data = export.build(rows, SOURCES, days=30)
+    assert data["first_collected"] == "2026-10-11T01:00:00Z"
+    assert data["generated_from"] == "2026-10-12T01:00:00Z"
+
+
 def test_summary_counts_and_source_names():
     rows = [_row(1, "2026-10-11"), _row(2, "2026-10-11", category="local"), _row(3, "2026-10-11", source="other")]
     data = export.build(rows, SOURCES, days=30)
