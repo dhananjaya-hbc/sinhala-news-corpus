@@ -55,3 +55,11 @@ jobs:
           git commit -m "data: daily headlines $(TZ=Asia/Colombo date +%F)"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+  site:
+    needs: collect
+    uses: ./.github/workflows/deploy-site.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
