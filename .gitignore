@@ -10,3 +10,9 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# Website (site/): dependencies, build output, generated data
+site/node_modules/
+site/dist/
+site/.astro/
+site/src/data/site-data.json
