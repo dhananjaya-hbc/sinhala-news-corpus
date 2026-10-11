@@ -25,7 +25,7 @@ _TAG_RE = re.compile(r"<[^<>]+>")
 _WS_RE = re.compile(r"\s+")
 _SUFFIX_SEP = r"\s*[-–—|:•]\s*"
 
-DEFAULT_MIN_SINHALA_RATIO = 0.5
+DEFAULT_MIN_SINHALA_RATIO = 0.3
 
 
 def is_sinhala(ch: str) -> bool:
@@ -116,9 +116,10 @@ def is_legacy_font_text(text: str, min_ratio: float = DEFAULT_MIN_SINHALA_RATIO)
     """Detect pre-Unicode Sinhala (FM Abhaya, DL-Manel, ...).
 
     Those fonts draw Sinhala glyphs on Latin code points, so in a Sinhala
-    feed the text arrives as gibberish like ``Y%S ,xldj``. Real Unicode
-    headlines are almost entirely in U+0D80-U+0DFF, with a few English
-    acronyms at most.
+    feed the text arrives as gibberish like ``Y%S ,xldj`` and scores ~0.
+    Real Unicode headlines score near 1.0; even brand-heavy press releases
+    ("Sumathi Information Technologies 25 වැනි සංවත්සරය සමරයි") stay above
+    0.35, so the 0.3 default separates the two with a margin.
     """
     return sinhala_ratio(text) < min_ratio
 
