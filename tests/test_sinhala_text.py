@@ -195,6 +195,24 @@ def test_sinhala_site_suffix_removed():
     assert clean_headline(raw, suffixes=["දිවයින", "Divaina"]) == "ක්‍රිකට් නඩුවලට කෝටි 116ක්"
 
 
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        # real Siyatha News headlines
+        ("දිනකට මානසික රෝගීන් 60ක් (VIDEO)", "දිනකට මානසික රෝගීන් 60ක්"),
+        ("ඉන්දීය UPI දැන් ලංකාවේ(VIDEO)", "ඉන්දීය UPI දැන් ලංකාවේ"),
+        ("ආසියානු ක්\u200dරීඩා උලෙළ සාර්ථකව අවසන් (Video)", "ආසියානු ක්\u200dරීඩා උලෙළ සාර්ථකව අවසන්"),
+    ],
+)
+def test_bracketed_marker_removed_without_separator(raw, expected):
+    assert clean_headline(raw, suffixes=["(VIDEO)"]) == expected
+
+
+def test_bracketed_marker_kept_in_middle():
+    raw = "(VIDEO) දිනකට මානසික රෝගීන් 60ක්"
+    assert strip_site_suffix(raw, ["(VIDEO)"]) == raw
+
+
 def test_suffix_only_removed_at_end():
     raw = "දිවයින - පුවත්පතට නව කර්තෘවරයෙක්"
     assert strip_site_suffix(raw, ["දිවයින"]) == raw
