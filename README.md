@@ -44,7 +44,7 @@ only ever appended to and each daily commit is a small diff.
 `politics` · `business` · `sports` · `international` · `entertainment` · `technology` · `local` · `other`
 
 Labels come from the publisher, not from a model. Each site's section names
-(e.g. Dinamina's `දේශපාලන`, Divaina's `විදෙස්`, Neth News' `Foreign News`)
+(e.g. Siyatha's `ක්‍රීඩා පුවත්`, Lanka Truth's `ආර්ථික පුවත්`, Neth News' `Foreign News`)
 are mapped to this set in [`sources.yaml`](sources.yaml). When an item has
 several categories, the most specific one wins:
 `sports > entertainment > technology > business > international > politics > local > other`.
@@ -64,18 +64,29 @@ df["category"].value_counts()
 
 | Source | Website | Feeds used | Where the label comes from |
 |---|---|---|---|
-| Ada Derana Sinhala (`adaderana`) | [sinhala.adaderana.lk](https://sinhala.adaderana.lk/) | `rss.php` | `<category>` tags (hot-news, international-news, sports-news, ...) |
 | Lankadeepa (`lankadeepa`) | [lankadeepa.lk](https://www.lankadeepa.lk/) | politics, business, world news, latest news | The section feed itself |
-| Dinamina (`dinamina`) | [dinamina.lk](https://www.dinamina.lk/) | sports, business, foreign, politics, main feed | WordPress categories |
-| Divaina (`divaina`) | [divaina.lk](https://www.divaina.lk/) | sports, business, foreign, main news, breaking news | WordPress categories and section feed |
 | Neth News (`nethnews`) | [nethnews.lk](https://www.nethnews.lk/) | sports, international, politics, main feed | WordPress categories |
+| Siyatha News (`siyatha`) | [siyathanews.lk](https://siyathanews.lk/) | sports, business, world news, main feed | WordPress categories |
+| Lanka Truth (`lankatruth`) | [lankatruth.com/si](https://lankatruth.com/si/) | sports, economy, main feed | WordPress categories |
 
 All headlines belong to these publishers; please credit them. To add or remove a
 source, edit [`sources.yaml`](sources.yaml); no code changes are needed.
 
-Sources that were evaluated but not used: Hiru News and ITN (no RSS feed),
-Newsfirst Sinhala (feed blocked, HTTP 403), BBC News Sinhala (excellent text but
-no categories in its feed), and several English-language or opinion/weekly sites.
+**Blocked from GitHub Actions.** Ada Derana Sinhala, Dinamina and Divaina
+have working feeds, but their CDN firewalls (CloudFront, Cloudflare) return
+HTTP 403 to GitHub's cloud IP addresses. They are kept in `sources.yaml` with
+`enabled: false` rather than worked around: the project does not disguise its
+User-Agent or route through proxies. You can re-test any feed from GitHub's
+network with the **Check feeds** workflow (Actions → Check feeds → Run workflow).
+
+**Evaluated but not used:** Hiru News and ITN (no RSS feed), Newsfirst Sinhala
+(feed blocked, HTTP 403), Mawbima and Silumina (also blocked from GitHub),
+BBC News Sinhala (excellent text but no categories in its feed), and several
+English-language or opinion/weekly sites.
+
+**Source bias to keep in mind:** Siyatha News publishes many China-related
+stories, and Lanka Truth is politically partisan. STATS.md breaks every count
+down by source, so you can filter or re-weight them.
 
 ## How it works
 
@@ -120,7 +131,8 @@ tests built on real headlines in [`tests/test_sinhala_text.py`](tests/test_sinha
 4. **Zero-width joiner (U+200D):** see below.
 5. **Whitespace:** runs of spaces, tabs, newlines and non-breaking spaces become
    one space.
-6. **Site-name suffixes:** e.g. `… - Ada Derana Sinhala` or `… | දිවයින` are removed.
+6. **Site-name suffixes and markers:** e.g. `… - Ada Derana Sinhala`, `… | දිවයින` or
+   Siyatha's `…(VIDEO)` are removed.
 
 ### The ZWJ problem
 
@@ -163,7 +175,7 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
 - **robots.txt is respected.** It is checked before every feed request, both for
   this project's user agent and for `*`. If robots.txt can't be reached, the
   site is treated as disallowed (RFC 9309).
-- **Once per day,** with a 1 s pause between feeds of the same site: about 20 small
+- **Once per day,** with a 1 s pause between feeds of the same site: about 15 small
   requests a day in total.
 - **Identifiable:** requests use the User-Agent
   `sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)`.
@@ -188,7 +200,8 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
   widen coverage.
 - Labels are the publishers' own categories: useful but noisy, and imbalanced
   (`local` dominates; `technology` and `entertainment` are rare for now).
-- Ada Derana items carry no publication date; the collection date is used.
+- Section feeds can reach back years (Siyatha's go back to 2021), so the first
+  run for a new source backfills older headlines with their real dates.
 
 ## Running locally
 
