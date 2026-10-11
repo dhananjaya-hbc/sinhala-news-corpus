@@ -166,6 +166,8 @@ sources:
         default_category: sports
       - url: https://lankatruth.com/si/?feed=rss2&cat=5
         default_category: business
+      - url: https://lankatruth.com/si/?feed=rss2&cat=3
+        default_category: international
       - url: https://lankatruth.com/si/?feed=rss2
         default_category: local
     category_map:
@@ -174,3 +176,44 @@ sources:
       විදෙස් පුවත්: international
       වංචා දූෂණ: local
       පරිසර: local
+
+  - id: ada
+    name: Ada (ada.lk)
+    homepage: https://www.ada.lk/
+    # no title_suffixes: "අද" (the site name) is also the word for "today"
+    # Same CMS as Lankadeepa: no category tags, the section comes from the feed.
+    # pubDate is written in Sinhala ("2026 ඔක්තෝබර් මස 08 ප.ව. 06:19").
+    feeds:
+      - url: https://www.ada.lk/rss/technology/5
+        default_category: technology
+      - url: https://www.ada.lk/rss/sports/9
+        default_category: sports
+      - url: https://www.ada.lk/rss/business/7
+        default_category: business
+      - url: https://www.ada.lk/rss/international/3
+        default_category: international
+      - url: https://www.ada.lk/rss/breaking_news/11
+        default_category: local
+
+  - id: lankacnews
+    name: Lanka C News
+    homepage: https://www.lankacnews.com/
+    title_suffixes: ["Lanka C News", "LankaCNews"]
+    # Blogger site: one feed per label at /feeds/posts/default/-/<Label>
+    feeds:
+      - url: https://www.lankacnews.com/feeds/posts/default/-/Technology?alt=rss
+        default_category: technology
+      - url: https://www.lankacnews.com/feeds/posts/default/-/Arts?alt=rss
+        default_category: entertainment
+      - url: https://www.lankacnews.com/feeds/posts/default/-/Economy?alt=rss
+        default_category: business
+      - url: https://www.lankacnews.com/feeds/posts/default?alt=rss
+        default_category: local
+    category_map:
+      Technology: technology
+      Arts: entertainment
+      Economy: business
+      Market: business
+      Sports: sports
+      Foreign: international
+      Local: local
