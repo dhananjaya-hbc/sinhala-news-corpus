@@ -40,9 +40,9 @@ def test_nfc_composes_split_vowel_sign_o():
 
 
 def test_nfc_composes_split_vowel_sign_ee():
-    # "ලෝකය" typed as ල + ෙ + ් + ා ... style sequences: ෙ + ් -> ේ
-    decomposed = "ආරම්ත වේ"  # ... වේ -> වේ
-    assert normalize_unicode(decomposed).endswith("වේ")
+    # "ආරම්භ වේ" with වේ typed as ව + ෙ + ් must end in ව + ේ
+    decomposed = "ආරම්භ \u0dc0\u0dd9\u0dca"
+    assert normalize_unicode(decomposed).endswith("\u0dc0\u0dda")
 
 
 def test_clean_headline_output_is_nfc():
