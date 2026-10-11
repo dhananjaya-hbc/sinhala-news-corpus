@@ -5,6 +5,7 @@ with explicit escapes: "්‍" is ් followed by ZWJ.
 """
 
 import unicodedata
+from datetime import date
 
 import pytest
 
@@ -16,6 +17,7 @@ from collector.sinhala_text import (
     headline_key,
     is_legacy_font_text,
     normalize_unicode,
+    parse_sinhala_date,
     remove_invisible,
     sinhala_ratio,
     strip_html,
@@ -235,3 +237,27 @@ def test_headline_key_keeps_different_headlines_apart():
     assert headline_key("ඥානසාර හිමිට නිදහස පතා සඟ පා ගමනක්") != headline_key(
         "ඥානසාර හිමි හිරගෙදර මුද්‍රණ වැඩට"
     )
+
+
+# --- Sinhala dates -----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        # real Ada.lk pubDate values
+        ("2026 ඔක්තෝබර් මස 08 ප.ව. 06:19", date(2026, 10, 8)),
+        ("2026 ඔක්තෝබර් මස 01 පෙ.ව. 07:01", date(2026, 10, 1)),
+        ("2026 සැප්තැම්බර් මස 30 ප.ව. 11:59", date(2026, 9, 30)),
+        # අප්‍රේල් written with and without ZWJ
+        ("2026 අප්\u200dරේල් මස 14 පෙ.ව. 09:00", date(2026, 4, 14)),
+        ("2026 අප්රේල් 14", date(2026, 4, 14)),
+    ],
+)
+def test_parse_sinhala_date(text, expected):
+    assert parse_sinhala_date(text) == expected
+
+
+@pytest.mark.parametrize("text", ["", "Sat, 10 Oct 2026 20:00:00 +0000", "2026 ඔක්තෝබර් මස 32", "2026 සඳුදා 08"])
+def test_parse_sinhala_date_rejects_other_formats(text):
+    assert parse_sinhala_date(text) is None
