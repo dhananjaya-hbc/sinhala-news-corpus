@@ -92,6 +92,13 @@ def test_dates_use_sri_lanka_time_and_fall_back_to_today():
     assert entry_date(entries[1], NOW) == "2026-10-11"
 
 
+def test_sinhala_pubdate_is_parsed():
+    # Ada.lk writes pubDate with Sinhala month names
+    rss = RSS.replace("<category>hot-news</category>", "<pubDate>2026 ඔක්තෝබර් මස 08 ප.ව. 06:19</pubDate>")
+    entry = feedparser.parse(rss).entries[0]
+    assert entry_date(entry, NOW) == "2026-10-08"
+
+
 def test_failing_source_does_not_stop_others(tmp_path):
     config = Config(settings=SETTINGS, sources=(BROKEN, ADA))
     fetcher = FakeFetcher({ADA.feeds[0].url: RSS})
