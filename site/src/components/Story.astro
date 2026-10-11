@@ -1,0 +1,44 @@
+---
+import { CATEGORIES, formatLongDate, sourceName, url, type Headline } from "../lib/data";
+
+interface Props {
+  h: Headline;
+  size?: "lead" | "md" | "sm";
+  kicker?: boolean; // show the section above the headline
+  source?: boolean;
+  date?: boolean;
+}
+
+const { h, size = "sm", kicker = true, source = true, date = false } = Astro.props;
+const headlineSize = {
+  lead: "text-[2.05rem] leading-[1.28] font-extrabold sm:text-[2.75rem] lg:text-[3.1rem]",
+  md: "text-[1.4rem] leading-[1.42] font-bold",
+  sm: "text-[1.15rem] leading-[1.48] font-bold",
+}[size];
+---
+
+<article>
+  {
+    kicker && (
+      <a href={url(`category/${h.c}/`)} class="mb-1 inline-block font-sans text-[0.8rem] font-semibold text-accent hover:underline">
+        {CATEGORIES[h.c].si}
+      </a>
+    )
+  }
+  <h3 class:list={["font-serif text-ink", headlineSize]}>
+    <a class="headline-link" href={h.u} target="_blank" rel="noopener">{h.h}</a>
+  </h3>
+  {
+    (source || date) && (
+      <p class:list={["flex flex-wrap items-center gap-x-2 font-sans text-ink-3", size === "lead" ? "mt-3 text-sm" : "mt-1.5 text-[0.78rem]"]}>
+        {source && (
+          <a href={url(`source/${h.s}/`)} class="font-medium uppercase tracking-[0.12em] hover:text-ink">
+            {sourceName(h.s)}
+          </a>
+        )}
+        {source && date && <span aria-hidden="true">·</span>}
+        {date && <time datetime={h.d}>{formatLongDate(h.d)}</time>}
+      </p>
+    )
+  }
+</article>
