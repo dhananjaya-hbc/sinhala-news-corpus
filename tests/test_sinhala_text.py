@@ -69,6 +69,22 @@ def test_zwj_kept_in_old_touching_letter_order():
     assert fix_zwj(word) == word
 
 
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        # Lanka C News writes ප්‍ර as ප + ZWJ + ් + ZWJ + ර (old converter output)
+        ("ප\u200d\u0dca\u200dරධාන නළුවා", "ප\u0dca\u200dරධාන නළුවා"),
+        ("චිත\u200d\u0dca\u200dරපටයකට", "චිත\u0dca\u200dරපටයකට"),
+        ("ශ\u200d\u0dca\u200dරී ලංකාව", SRI_LANKA),
+        # same, but a CMS already dropped the second ZWJ
+        ("ප\u200d\u0dcaරධාන නළුවා", "ප\u0dca\u200dරධාන නළුවා"),
+        ("රාජ\u200d\u0dcaය සේවකයන්", RAJYA + " සේවකයන්"),
+    ],
+)
+def test_converter_style_rakaransaya_and_yansaya_repaired(raw, expected):
+    assert fix_zwj(raw) == expected
+
+
 def test_stray_zwj_after_vowel_sign_removed():
     # ZWJ after ී (a vowel sign) joins nothing
     assert fix_zwj("ශ්‍රී‍ ලංකාව") == SRI_LANKA
