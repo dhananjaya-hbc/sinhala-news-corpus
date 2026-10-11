@@ -67,7 +67,9 @@ df["category"].value_counts()
 | Lankadeepa (`lankadeepa`) | [lankadeepa.lk](https://www.lankadeepa.lk/) | politics, business, world news, latest news | The section feed itself |
 | Neth News (`nethnews`) | [nethnews.lk](https://www.nethnews.lk/) | sports, international, politics, main feed | WordPress categories |
 | Siyatha News (`siyatha`) | [siyathanews.lk](https://siyathanews.lk/) | sports, business, world news, main feed | WordPress categories |
-| Lanka Truth (`lankatruth`) | [lankatruth.com/si](https://lankatruth.com/si/) | sports, economy, main feed | WordPress categories |
+| Lanka Truth (`lankatruth`) | [lankatruth.com/si](https://lankatruth.com/si/) | sports, economy, world news, main feed | WordPress categories |
+| Ada (`ada`) | [ada.lk](https://www.ada.lk/) | technology, sports, business, international, breaking news | The section feed itself |
+| Lanka C News (`lankacnews`) | [lankacnews.com](https://www.lankacnews.com/) | Technology, Arts, Economy, main feed | Blogger labels |
 
 All headlines belong to these publishers; please credit them. To add or remove a
 source, edit [`sources.yaml`](sources.yaml); no code changes are needed.
@@ -85,8 +87,9 @@ BBC News Sinhala (excellent text but no categories in its feed), and several
 English-language or opinion/weekly sites.
 
 **Source bias to keep in mind:** Siyatha News publishes many China-related
-stories, and Lanka Truth is politically partisan. STATS.md breaks every count
-down by source, so you can filter or re-weight them.
+stories, Lanka Truth is politically partisan, and Lanka C News is
+tabloid-style (most of the `entertainment` label comes from its Arts feed).
+STATS.md breaks every count down by source, so you can filter or re-weight them.
 
 ## How it works
 
@@ -152,7 +155,14 @@ Removing every ZWJ, as many generic "clean text" functions do, turns
 Keeping every ZWJ leaves strays from copy/paste and CMS editors (after vowel
 signs, between words, doubled) that make identical headlines look different.
 The cleaner **keeps ZWJ only in the patterns above** (plus the older
-SLS 1134 order consonant + ZWJ + `්`) and removes the rest.
+SLS 1134 order consonant + ZWJ + `්` for touching letters) and removes the rest.
+
+Old font converters add a third variant. Lanka C News writes `ප්‍ර` as
+`ප` + ZWJ + `්` + ZWJ + `ර`, and some sites keep only the first ZWJ (`ප‍්ර`),
+which shows a broken rakaransaya. Sinhala has no touching-letter form with
+`ර` or `ය`, so both are rewritten to the standard `ප` + `්` + ZWJ + `ර`.
+When a rule like this improves, `python scripts/reclean.py` re-applies the
+current rules to the rows already stored.
 
 ### The legacy-font problem
 
@@ -175,7 +185,7 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
 - **robots.txt is respected.** It is checked before every feed request, both for
   this project's user agent and for `*`. If robots.txt can't be reached, the
   site is treated as disallowed (RFC 9309).
-- **Once per day,** with a 1 s pause between feeds of the same site: about 15 small
+- **Once per day,** with a 1 s pause between feeds of the same site: about 25 small
   requests a day in total.
 - **Identifiable:** requests use the User-Agent
   `sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)`.
@@ -198,8 +208,9 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
 - Feeds only list their latest 10–25 items, so a daily snapshot captures part of
   each site's output, not all of it. Section feeds are used where possible to
   widen coverage.
-- Labels are the publishers' own categories: useful but noisy, and imbalanced
-  (`local` dominates; `technology` and `entertainment` are rare for now).
+- Labels are the publishers' own categories: useful but noisy, and imbalanced.
+  `politics` is the smallest class: most sites have no politics section, and
+  political stories are often filed under local news.
 - Section feeds can reach back years (Siyatha's go back to 2021), so the first
   run for a new source backfills older headlines with their real dates.
 
@@ -212,6 +223,8 @@ python -m pytest                       # run the tests
 python -m collector.collect --dry-run  # fetch and report, write nothing
 python -m collector.collect            # append new headlines to data/raw/
 python scripts/stats.py                # regenerate STATS.md
+python scripts/reclean.py --dry-run    # preview re-cleaning stored headlines
+python scripts/check_feeds.py URL ...  # test a feed before adding it
 ```
 
 ## Roadmap
