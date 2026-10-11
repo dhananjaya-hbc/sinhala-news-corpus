@@ -1,0 +1,127 @@
+---
+import Base from "../layouts/Base.astro";
+import { CATEGORIES, CATEGORY_IDS, data, url } from "../lib/data";
+
+const categoryNames = Object.fromEntries(CATEGORY_IDS.map((id) => [id, { si: CATEGORIES[id].si, chip: CATEGORIES[id].chip }]));
+const sourceNames = Object.fromEntries(data.sources.map((s) => [s.id, s.name]));
+---
+
+<Base title="සොයන්න" active="search" description="Search recent Sinhala news headlines.">
+  <h1 class="mb-1 text-2xl font-bold">සොයන්න <span class="text-lg font-normal text-stone-500">· Search</span></h1>
+  <p class="mb-4 text-sm text-stone-500 dark:text-stone-400">පසුගිය දින {data.days} තුළ සිරස්තල {data.headlines.length}ක් අතර සොයන්න.</p>
+
+  <form id="search-form" class="mb-6 flex flex-col gap-2 sm:flex-row" role="search" onsubmit="return false">
+    <label class="sr-only" for="q">Search headlines</label>
+    <input
+      id="q"
+      type="search"
+      autocomplete="off"
+      placeholder="උදා: ක්‍රිකට්, IMF, ශ්‍රී ලංකා"
+      class="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-base dark:border-stone-700 dark:bg-stone-900"
+    />
+    <label class="sr-only" for="cat">Category</label>
+    <select id="cat" class="rounded-xl border border-stone-300 bg-white px-3 py-2.5 dark:border-stone-700 dark:bg-stone-900">
+      <option value="">සියලු කාණ්ඩ</option>
+      {CATEGORY_IDS.map((id) => <option value={id}>{CATEGORIES[id].si}</option>)}
+    </select>
+  </form>
+
+  <p id="status" class="mb-3 text-sm text-stone-500 dark:text-stone-400" aria-live="polite"></p>
+  <ul
+    id="results"
+    class="divide-y divide-stone-200 overflow-hidden rounded-xl border border-stone-200 bg-white empty:hidden dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900"
+    data-index={url("search.json")}
+    data-base={url()}
+    data-categories={JSON.stringify(categoryNames)}
+    data-sources={JSON.stringify(sourceNames)}
+  >
+  </ul>
+</Base>
+
+<script>
+  interface Hit {
+    d: string;
+    s: string;
+    c: string;
+    h: string;
+    u: string;
+  }
+
+  const MAX_RESULTS = 100;
+  const list = document.getElementById("results") as HTMLUListElement;
+  const input = document.getElementById("q") as HTMLInputElement;
+  const select = document.getElementById("cat") as HTMLSelectElement;
+  const status = document.getElementById("status") as HTMLParagraphElement;
+  const base = list.dataset.base ?? "/";
+  const categories = JSON.parse(list.dataset.categories ?? "{}") as Record<string, { si: string; chip: string }>;
+  const sources = JSON.parse(list.dataset.sources ?? "{}") as Record<string, string>;
+
+  // Match the way the corpus is cleaned: NFC, no zero-width characters, case-folded.
+  // So "ශ්රී" (typed without ZWJ) still finds "ශ්‍රී".
+  const normalize = (text: string) =>
+    text.normalize("NFC").replace(/[​-‍⁠﻿]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+
+  let index: { hit: Hit; key: string }[] = [];
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string) {
+    const node = document.createElement(tag);
+    node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function render() {
+    const terms = normalize(input.value).split(" ").filter(Boolean);
+    const category = select.value;
+    list.replaceChildren();
+    if (!terms.length && !category) {
+      status.textContent = "සෙවීමට වචනයක් ටයිප් කරන්න. · Type a word to search.";
+      return;
+    }
+    const matches = index.filter(({ hit, key }) => (!category || hit.c === category) && terms.every((t) => key.includes(t)));
+    status.textContent = matches.length
+      ? `ප්‍රතිඵල ${matches.length}${matches.length > MAX_RESULTS ? ` (පළමු ${MAX_RESULTS} පෙන්වයි)` : ""}`
+      : "ප්‍රතිඵල නැත. · No results.";
+
+    for (const { hit } of matches.slice(0, MAX_RESULTS)) {
+      const li = el("li", "px-4 py-3");
+      const link = el("a", "text-[1.05rem] font-semibold leading-relaxed hover:text-sky-700 hover:underline dark:hover:text-sky-300", hit.h);
+      link.href = hit.u;
+      link.target = "_blank";
+      link.rel = "noopener";
+      const meta = el("div", "mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-stone-400");
+      const chip = el("a", `rounded-full px-2 py-0.5 font-medium ${categories[hit.c]?.chip ?? ""}`, categories[hit.c]?.si ?? hit.c);
+      chip.href = `${base}category/${hit.c}/`;
+      const source = el("a", "hover:underline", sources[hit.s] ?? hit.s);
+      source.href = `${base}source/${hit.s}/`;
+      const time = el("time", "", hit.d);
+      time.dateTime = hit.d;
+      meta.append(chip, source, time);
+      li.append(link, meta);
+      list.append(li);
+    }
+  }
+
+  let timer: number | undefined;
+  const schedule = () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(render, 120);
+  };
+
+  status.textContent = "සිරස්තල පූරණය වෙමින්… · Loading…";
+  fetch(list.dataset.index ?? "search.json")
+    .then((response) => response.json() as Promise<Hit[]>)
+    .then((hits) => {
+      index = hits.map((hit) => ({ hit, key: normalize(hit.h) }));
+      const params = new URLSearchParams(location.search);
+      input.value = params.get("q") ?? "";
+      select.value = params.get("c") ?? "";
+      render();
+      input.addEventListener("input", schedule);
+      select.addEventListener("change", render);
+      input.focus();
+    })
+    .catch(() => {
+      status.textContent = "සෙවුම් දත්ත පූරණය කළ නොහැක. · Could not load search data.";
+    });
+</script>
