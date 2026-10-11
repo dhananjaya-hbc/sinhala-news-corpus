@@ -1,0 +1,59 @@
+---
+import HeadlineList from "../components/HeadlineList.astro";
+import Base from "../layouts/Base.astro";
+import { CATEGORIES, CATEGORY_IDS, data, recentCategoryCounts, url } from "../lib/data";
+
+const LATEST = 150;
+const counts = recentCategoryCounts();
+const nf = new Intl.NumberFormat("en-US");
+---
+
+<Base title="සිංහල පුවත්" active="home">
+  <section class="mb-8">
+    <h1 class="text-2xl font-bold leading-snug">අද සිංහල පුවත් සිරස්තල</h1>
+    <p class="mt-1 text-stone-600 dark:text-stone-400">
+      ශ්‍රී ලාංකේය පුවත් අඩවි {data.sources.length}කින් දිනපතා එකතු කළ සිරස්තල. සිරස්තලයක් ක්ලික් කර මුල් ලිපිය කියවන්න.
+    </p>
+    <p class="text-sm text-stone-500 dark:text-stone-400">
+      Daily headlines from {data.sources.length} Sri Lankan news sites, sorted by topic. Click a headline to read it at the source.
+    </p>
+
+    <dl class="mt-4 grid grid-cols-3 gap-2 text-center">
+      <div class="rounded-xl border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900">
+        <dt class="text-xs text-stone-500 dark:text-stone-400">මෑත දින {data.days}</dt>
+        <dd class="text-xl font-bold tabular-nums">{nf.format(data.headlines.length)}</dd>
+      </div>
+      <div class="rounded-xl border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900">
+        <dt class="text-xs text-stone-500 dark:text-stone-400">මුළු දත්ත කට්ටලය</dt>
+        <dd class="text-xl font-bold tabular-nums">{nf.format(data.total_all_time)}</dd>
+      </div>
+      <div class="rounded-xl border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900">
+        <dt class="text-xs text-stone-500 dark:text-stone-400">පුවත් අඩවි</dt>
+        <dd class="text-xl font-bold tabular-nums">{data.sources.length}</dd>
+      </div>
+    </dl>
+
+    <ul class="mt-4 flex flex-wrap gap-2" aria-label="Topics">
+      {
+        CATEGORY_IDS.filter((id) => counts[id] > 0).map((id) => (
+          <li>
+            <a href={url(`category/${id}/`)} class:list={["inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium", CATEGORIES[id].chip]}>
+              {CATEGORIES[id].si}
+              <span class="tabular-nums opacity-70">{counts[id]}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <HeadlineList headlines={data.headlines.slice(0, LATEST)} />
+
+  {
+    data.headlines.length > LATEST && (
+      <p class="text-center text-sm text-stone-500 dark:text-stone-400">
+        තවත් සිරස්තල සඳහා කාණ්ඩයක් තෝරන්න හෝ <a class="underline" href={url("search/")}>සොයන්න</a>.
+      </p>
+    )
+  }
+</Base>
