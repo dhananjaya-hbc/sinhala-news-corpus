@@ -27,7 +27,7 @@ from collector.storage import read_rows  # noqa: E402
 def build(rows: list[dict[str, str]], sources: dict[str, dict[str, str]], days: int) -> dict:
     """Select headlines from the last ``days`` days (relative to the newest one) and summarise."""
     if not rows:
-        return {"generated_from": None, "days": days, "total_all_time": 0, "headlines": [], "sources": [], "categories": []}
+        return {"generated_from": None, "first_collected": None, "days": days, "total_all_time": 0, "headlines": [], "sources": [], "categories": []}
 
     newest = max(date.fromisoformat(r["date"]) for r in rows)
     cutoff = (newest - timedelta(days=days - 1)).isoformat()
@@ -39,6 +39,7 @@ def build(rows: list[dict[str, str]], sources: dict[str, dict[str, str]], days: 
     by_category = Counter(r["category"] for r in rows)
     return {
         "generated_from": max(r["collected_at"] for r in rows),
+        "first_collected": min(r["collected_at"] for r in rows),  # day 1 of the corpus, for edition numbers
         "days": days,
         "total_all_time": len(rows),
         "headlines": [
