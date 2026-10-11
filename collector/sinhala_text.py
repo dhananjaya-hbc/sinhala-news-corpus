@@ -90,12 +90,17 @@ def collapse_whitespace(text: str) -> str:
 
 
 def strip_site_suffix(text: str, suffixes: Iterable[str]) -> str:
-    """Remove a trailing ``" - Site Name"`` / ``" | Site Name"`` from a headline."""
+    """Remove a trailing ``" - Site Name"`` / ``" | Site Name"`` from a headline.
+
+    Bracketed markers such as ``(VIDEO)`` need no separator: Siyatha writes
+    both "... රෝගීන් 60ක් (VIDEO)" and "... ලංකාවේ(VIDEO)".
+    """
     for suffix in suffixes:
         suffix = _normalize(suffix)
         if not suffix:
             continue
-        pattern = re.compile(_SUFFIX_SEP + re.escape(suffix) + r"\s*$", re.IGNORECASE)
+        sep = r"\s*" if suffix[0] in "([" else _SUFFIX_SEP
+        pattern = re.compile(sep + re.escape(suffix) + r"\s*$", re.IGNORECASE)
         text = pattern.sub("", text)
     return text.strip()
 
