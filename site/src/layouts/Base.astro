@@ -1,25 +1,39 @@
 ---
-import "@fontsource/noto-sans-sinhala/400.css";
-import "@fontsource/noto-sans-sinhala/600.css";
-import "@fontsource/noto-sans-sinhala/700.css";
+import "@fontsource/abhaya-libre/500.css";
+import "@fontsource/abhaya-libre/700.css";
+import "@fontsource/abhaya-libre/800.css";
+import "@fontsource-variable/yaldevi";
 import "../styles/global.css";
-import { CATEGORIES, CATEGORY_IDS, REPO_URL, data, url } from "../lib/data";
+import {
+  CATEGORIES,
+  REPO_URL,
+  SECTION_ORDER,
+  data,
+  editionDate,
+  editionNumber,
+  formatLongDate,
+  formatWeekday,
+  url,
+} from "../lib/data";
 
 interface Props {
   title: string;
   description?: string;
-  active?: string; // category id or page key to highlight in the nav
+  active?: string; // section id or page key to highlight in the nav
+  compact?: boolean; // smaller masthead on inner pages
 }
 
 const {
   title,
-  description = "Latest Sinhala news headlines from Sri Lankan publishers, sorted by topic. Every headline links to the original article.",
+  description = "Latest Sinhala news headlines from Sri Lankan publishers, arranged like a daily broadsheet. Every headline links to the original article.",
   active,
+  compact = false,
 } = Astro.props;
-const fullTitle = title === "සිංහල පුවත්" ? "සිංහල පුවත් · Sinhala News Corpus" : `${title} · සිංහල පුවත්`;
+const fullTitle = title === "සිංහල පුවත්" ? "සිංහල පුවත් · The Sinhala News Corpus" : `${title} · සිංහල පුවත්`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const updated = data.generated_from ? data.generated_from.replace("T", " ").replace("Z", " UTC") : "—";
-const navLink = "rounded-full px-2.5 py-1 text-sm whitespace-nowrap transition-colors sm:px-3";
+const updated = data.generated_from ? data.generated_from.replace("T", " ").replace(/:\d\dZ$/, " UTC") : "—";
+const sectionLink = "block whitespace-nowrap px-3 py-2.5 font-sans text-[0.92rem] transition-colors sm:px-4";
+const utilityLink = "rounded-sm px-2 py-1 transition-colors hover:text-accent";
 ---
 
 <!doctype html>
@@ -35,9 +49,9 @@ const navLink = "rounded-full px-2.5 py-1 text-sm whitespace-nowrap transition-c
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="theme-color" content="#fafaf9" />
+    <meta name="theme-color" content="#f5efe3" />
     <script is:inline>
-      // Runs before the page paints, so a dark-mode reader never sees a white flash.
+      // Runs before the page paints, so a dark-mode reader never sees a light flash.
       // Saved choice ("light" / "dark") wins; otherwise follow the system setting.
       (() => {
         let saved = null;
@@ -46,62 +60,85 @@ const navLink = "rounded-full px-2.5 py-1 text-sm whitespace-nowrap transition-c
         } catch {}
         const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.classList.toggle("dark", dark);
-        document.querySelector('meta[name="theme-color"]').content = dark ? "#0c0a09" : "#fafaf9";
+        document.querySelector('meta[name="theme-color"]').content = dark ? "#14110e" : "#f5efe3";
       })();
     </script>
   </head>
-  <body class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
-    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:bg-white focus:px-3 focus:py-2 dark:focus:bg-stone-900">
+  <body class="min-h-screen bg-paper font-sans text-ink antialiased">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:bg-paper focus:px-3 focus:py-2">
       Skip to content
     </a>
 
-    <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80">
-      <div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
-        <a href={url()} class="group shrink-0">
-          <span class="block whitespace-nowrap text-xl font-bold leading-tight">සිංහල පුවත්</span>
-          <span class="block text-xs text-stone-500 group-hover:text-stone-700 dark:text-stone-400 dark:group-hover:text-stone-200">
-            Sinhala News Corpus
-          </span>
-        </a>
-        <nav class="flex items-center gap-0.5 text-sm sm:gap-1" aria-label="Site">
-          <a href={url("search/")} class:list={[navLink, active === "search" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
-            සොයන්න
+    <header class="mx-auto max-w-6xl px-4 sm:px-6">
+      <!-- Dateline -->
+      <div class="flex items-center justify-between gap-3 border-b border-rule py-2 text-[0.8rem] text-ink-2">
+        <p class="flex items-center gap-2">
+          <span class="hidden font-semibold text-ink sm:inline">{formatWeekday(editionDate)}</span>
+          <span class="hidden sm:inline" aria-hidden="true">·</span>
+          <time datetime={editionDate}>{formatLongDate(editionDate)}</time>
+          <span aria-hidden="true">·</span>
+          <span>අංක {editionNumber}</span>
+        </p>
+        <nav class="flex items-center gap-1" aria-label="Site">
+          <a href={url("search/")} class:list={[utilityLink, active === "search" && "text-accent"]} aria-current={active === "search" ? "page" : undefined}>
+            <svg class="inline h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <span class="sr-only sm:not-sr-only">සොයන්න</span>
           </a>
-          <a href={url("about/")} class:list={[navLink, active === "about" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
+          <a href={url("about/")} class:list={[utilityLink, active === "about" && "text-accent"]} aria-current={active === "about" ? "page" : undefined}>
             About
           </a>
           <button
             id="theme-toggle"
             type="button"
-            class="ml-1 rounded-full p-2 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+            class="rounded-full p-1.5 text-ink-2 transition-colors hover:bg-paper-2 hover:text-ink"
             aria-label="Switch to dark mode"
             title="Switch to dark mode"
           >
-            <!-- moon: shown in light mode -->
-            <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="h-[18px] w-[18px] dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
             </svg>
-            <!-- sun: shown in dark mode -->
-            <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="hidden h-[18px] w-[18px] dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="4"></circle>
               <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
             </svg>
           </button>
         </nav>
       </div>
-      <nav class="mx-auto max-w-4xl overflow-x-auto px-4 pb-3" aria-label="Categories">
-        <ul class="flex gap-1">
+
+      <!-- Masthead -->
+      <div class:list={["text-center", compact ? "py-5" : "py-7 sm:py-10"]}>
+        <a href={url()} class="inline-block transition-colors hover:text-accent" aria-label="සිංහල පුවත් — home">
+          <span
+            class:list={[
+              "block font-serif font-extrabold leading-[1.05]",
+              compact ? "text-[2.6rem] sm:text-[3.6rem]" : "text-[3.4rem] sm:text-[5.6rem] lg:text-[6.8rem]",
+            ]}
+          >
+            සිංහල පුවත්
+          </span>
+        </a>
+        <p class:list={["font-sans uppercase tracking-[0.26em] text-ink-2 sm:tracking-[0.38em]", compact ? "mt-1 text-[0.62rem]" : "mt-3 text-[0.66rem] sm:text-xs"]}>
+          The Sinhala News Corpus<span class="hidden sm:inline"> · Daily Edition</span>
+        </p>
+      </div>
+
+      <!-- Sections -->
+      <nav class="rule-masthead border-b border-ink" aria-label="Sections">
+        <ul class="-mx-4 flex overflow-x-auto px-4 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] sm:mx-0 sm:justify-center sm:px-0 sm:[mask-image:none]">
           <li>
-            <a href={url()} class:list={[navLink, active === "home" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
-              සියල්ල
+            <a href={url()} class:list={[sectionLink, active === "home" ? "font-semibold text-accent" : "text-ink hover:text-accent"]} aria-current={active === "home" ? "page" : undefined}>
+              මුල් පිටුව
             </a>
           </li>
           {
-            CATEGORY_IDS.map((id) => (
-              <li>
+            SECTION_ORDER.map((id) => (
+              <li class="border-l border-rule">
                 <a
                   href={url(`category/${id}/`)}
-                  class:list={[navLink, active === id ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}
+                  class:list={[sectionLink, active === id ? "font-semibold text-accent" : "text-ink hover:text-accent"]}
+                  aria-current={active === id ? "page" : undefined}
                 >
                   {CATEGORIES[id].si}
                 </a>
@@ -112,22 +149,43 @@ const navLink = "rounded-full px-2.5 py-1 text-sm whitespace-nowrap transition-c
       </nav>
     </header>
 
-    <main id="main" class="mx-auto max-w-4xl px-4 py-6">
+    <main id="main" class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <slot />
     </main>
 
-    <footer class="border-t border-stone-200 dark:border-stone-800">
-      <div class="mx-auto max-w-4xl space-y-2 px-4 py-6 text-sm text-stone-500 dark:text-stone-400">
-        <p>
-          සිරස්තල එක් එක් ප්‍රකාශකයාට අයත් වේ. සෑම සිරස්තලයක්ම මුල් ලිපියට යොමු කරයි.
-          <br />
-          Headlines belong to their publishers; each one links to the original article. No article text is copied.
-        </p>
-        <p>
-          <a class="underline hover:text-stone-800 dark:hover:text-stone-200" href={REPO_URL}>GitHub</a> ·
-          Data <a class="underline hover:text-stone-800 dark:hover:text-stone-200" href={`${REPO_URL}/blob/main/DATA_LICENSE.md`}>CC BY 4.0</a> ·
-          Code <a class="underline hover:text-stone-800 dark:hover:text-stone-200" href={`${REPO_URL}/blob/main/LICENSE`}>MIT</a> ·
-          Last collected {updated}
+    <footer class="mt-8 border-t-[3px] border-double border-ink">
+      <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-ink-2 sm:grid-cols-3 sm:px-6">
+        <div>
+          <p class="font-serif text-3xl font-extrabold text-ink">සිංහල පුවත්</p>
+          <p class="mt-2">
+            සිංහල භාෂා තාක්ෂණය සඳහා විවෘත පුවත් සිරස්තල දත්ත කට්ටලයක්.
+            <span class="block text-ink-3">An open dataset of Sinhala news headlines for language research.</span>
+          </p>
+        </div>
+        <div>
+          <p class="font-semibold text-ink">ප්‍රකාශන අයිතිය <span class="ml-1 text-[0.66rem] font-medium uppercase tracking-[0.22em] text-ink-3">Copyright</span></p>
+          <p class="mt-2">
+            සිරස්තල එක් එක් ප්‍රකාශකයාට අයත් වේ.
+            <span class="block text-ink-3">
+              Headlines belong to their publishers and each links to the original article. No article text or images are copied.
+            </span>
+          </p>
+        </div>
+        <div>
+          <p class="font-semibold text-ink">දත්ත <span class="ml-1 text-[0.66rem] font-medium uppercase tracking-[0.22em] text-ink-3">Data</span></p>
+          <ul class="mt-2 space-y-1">
+            <li><a class="underline decoration-rule underline-offset-4 hover:text-accent" href={REPO_URL}>Source code on GitHub</a></li>
+            <li>
+              Data <a class="underline decoration-rule underline-offset-4 hover:text-accent" href={`${REPO_URL}/blob/main/DATA_LICENSE.md`}>CC BY 4.0</a> ·
+              Code <a class="underline decoration-rule underline-offset-4 hover:text-accent" href={`${REPO_URL}/blob/main/LICENSE`}>MIT</a>
+            </li>
+            <li class="text-ink-3">Last collected {updated}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-rule">
+        <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-ink-3 sm:px-6">
+          Set in Abhaya Libre &amp; Yaldevi, Sinhala typefaces by Mooniak · අංක {editionNumber}
         </p>
       </div>
     </footer>
@@ -148,7 +206,7 @@ const navLink = "rounded-full px-2.5 py-1 text-sm whitespace-nowrap transition-c
 
       function apply(dark: boolean) {
         root.classList.toggle("dark", dark);
-        themeColor.content = dark ? "#0c0a09" : "#fafaf9";
+        themeColor.content = dark ? "#14110e" : "#f5efe3";
         const label = dark ? "Switch to light mode" : "Switch to dark mode";
         toggle.setAttribute("aria-label", label);
         toggle.title = label;
