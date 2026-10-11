@@ -19,7 +19,7 @@ const {
 const fullTitle = title === "සිංහල පුවත්" ? "සිංහල පුවත් · Sinhala News Corpus" : `${title} · සිංහල පුවත්`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const updated = data.generated_from ? data.generated_from.replace("T", " ").replace("Z", " UTC") : "—";
-const navLink = "rounded-full px-3 py-1 text-sm whitespace-nowrap transition-colors";
+const navLink = "rounded-full px-2.5 py-1 text-sm whitespace-nowrap transition-colors sm:px-3";
 ---
 
 <!doctype html>
@@ -35,8 +35,20 @@ const navLink = "rounded-full px-3 py-1 text-sm whitespace-nowrap transition-col
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fafaf9" />
+    <script is:inline>
+      // Runs before the page paints, so a dark-mode reader never sees a white flash.
+      // Saved choice ("light" / "dark") wins; otherwise follow the system setting.
+      (() => {
+        let saved = null;
+        try {
+          saved = localStorage.getItem("theme");
+        } catch {}
+        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+        document.querySelector('meta[name="theme-color"]').content = dark ? "#0c0a09" : "#fafaf9";
+      })();
+    </script>
   </head>
   <body class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:bg-white focus:px-3 focus:py-2 dark:focus:bg-stone-900">
@@ -44,20 +56,37 @@ const navLink = "rounded-full px-3 py-1 text-sm whitespace-nowrap transition-col
     </a>
 
     <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80">
-      <div class="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
-        <a href={url()} class="group">
-          <span class="block text-xl font-bold leading-tight">සිංහල පුවත්</span>
+      <div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
+        <a href={url()} class="group shrink-0">
+          <span class="block whitespace-nowrap text-xl font-bold leading-tight">සිංහල පුවත්</span>
           <span class="block text-xs text-stone-500 group-hover:text-stone-700 dark:text-stone-400 dark:group-hover:text-stone-200">
             Sinhala News Corpus
           </span>
         </a>
-        <nav class="flex items-center gap-1 text-sm" aria-label="Site">
+        <nav class="flex items-center gap-0.5 text-sm sm:gap-1" aria-label="Site">
           <a href={url("search/")} class:list={[navLink, active === "search" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
             සොයන්න
           </a>
           <a href={url("about/")} class:list={[navLink, active === "about" ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "hover:bg-stone-100 dark:hover:bg-stone-800"]}>
             About
           </a>
+          <button
+            id="theme-toggle"
+            type="button"
+            class="ml-1 rounded-full p-2 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+            aria-label="Switch to dark mode"
+            title="Switch to dark mode"
+          >
+            <!-- moon: shown in light mode -->
+            <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+            </svg>
+            <!-- sun: shown in dark mode -->
+            <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+            </svg>
+          </button>
         </nav>
       </div>
       <nav class="mx-auto max-w-4xl overflow-x-auto px-4 pb-3" aria-label="Categories">
@@ -102,5 +131,43 @@ const navLink = "rounded-full px-3 py-1 text-sm whitespace-nowrap transition-col
         </p>
       </div>
     </footer>
+
+    <script>
+      const root = document.documentElement;
+      const toggle = document.getElementById("theme-toggle") as HTMLButtonElement;
+      const themeColor = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+      const system = matchMedia("(prefers-color-scheme: dark)");
+
+      function savedTheme(): string | null {
+        try {
+          return localStorage.getItem("theme");
+        } catch {
+          return null; // storage blocked (private mode): the toggle still works for this page
+        }
+      }
+
+      function apply(dark: boolean) {
+        root.classList.toggle("dark", dark);
+        themeColor.content = dark ? "#0c0a09" : "#fafaf9";
+        const label = dark ? "Switch to light mode" : "Switch to dark mode";
+        toggle.setAttribute("aria-label", label);
+        toggle.title = label;
+      }
+
+      apply(root.classList.contains("dark"));
+
+      toggle.addEventListener("click", () => {
+        const dark = !root.classList.contains("dark");
+        apply(dark);
+        try {
+          localStorage.setItem("theme", dark ? "dark" : "light");
+        } catch {}
+      });
+
+      // Until the reader picks a theme, keep following the system setting.
+      system.addEventListener("change", (event) => {
+        if (!savedTheme()) apply(event.matches);
+      });
+    </script>
   </body>
 </html>
