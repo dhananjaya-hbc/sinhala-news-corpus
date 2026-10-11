@@ -1,30 +1,129 @@
 @import "tailwindcss";
 
-@theme {
-  /* Noto Sans Sinhala shapes ZWJ conjuncts (ශ්‍රී, ප්‍ර, ත්‍ය) correctly everywhere */
-  --font-sans: "Noto Sans Sinhala", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
 /* Dark mode follows the .dark class on <html>, set from the reader's saved
    choice or their system setting (see the theme script in Base.astro). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Broadsheet design tokens. Day edition: ink on cream newsprint.
+   Night edition: warm ivory on deep charcoal. One accent: Sri Lankan red. */
 :root {
+  --paper: #f5efe3;
+  --paper-2: #ece3d1;
+  --ink: #1b1814;
+  --ink-2: #4c453c;
+  --ink-3: #6b6257;
+  --rule: #d3c6ae;
+  --accent: #a3161a;
+  --grain-opacity: 0.05;
   color-scheme: light;
 }
 
 :root.dark {
+  --paper: #14110e;
+  --paper-2: #1d1915;
+  --ink: #efe7d7;
+  --ink-2: #c2b8a6;
+  --ink-3: #93897a;
+  --rule: #3b342c;
+  --accent: #ef6b5f;
+  --grain-opacity: 0.035;
   color-scheme: dark;
 }
 
-body {
-  /* Sinhala vowel signs stack above and below the line; give them room */
-  line-height: 1.75;
-  text-rendering: optimizeLegibility;
+@theme inline {
+  /* Abhaya Libre (headlines) and Yaldevi (text) are Sri Lankan typefaces
+     published by Mooniak; both shape ZWJ conjuncts such as ශ්‍රී and ප්‍ර. */
+  --font-serif: "Abhaya Libre", Georgia, "Times New Roman", serif;
+  --font-sans: "Yaldevi Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-sky-500);
-  outline-offset: 2px;
-  border-radius: 4px;
+@layer base {
+  html {
+    background: var(--paper);
+  }
+
+  body {
+    /* Sinhala vowel signs stack above and below the line; give them room */
+    line-height: 1.7;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+  }
+
+  /* Faint newsprint grain over the whole page */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+
+  /* Native search clear button clashes with the design; Esc still clears */
+  input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+}
+
+@layer components {
+  /* Newspaper column flow for section and source pages */
+  .news-columns {
+    column-gap: 2.5rem;
+    column-rule: 1px solid var(--rule);
+  }
+
+  .news-columns > * {
+    break-inside: avoid;
+  }
+
+  .news-columns .span-all {
+    column-span: all;
+  }
+
+  /* Thin-thick-thin masthead rule */
+  .rule-masthead {
+    border-top: 3px double var(--ink);
+  }
+
+  /* Headline link: ink by default, red underline on hover like a proofreader's mark */
+  .headline-link {
+    text-decoration: none;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-size: 0% 1.5px;
+    background-position: 0 92%;
+    background-repeat: no-repeat;
+    transition: background-size 0.25s ease, color 0.2s ease;
+  }
+
+  .headline-link:hover {
+    color: var(--accent);
+    background-size: 100% 1.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headline-link {
+    transition: none;
+  }
 }
