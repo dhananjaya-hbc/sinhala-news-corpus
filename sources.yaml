@@ -13,7 +13,8 @@
 #                    entertainment, technology, local, other).
 #                   Matching ignores case, ZWJ and zero-width spaces.
 #                   Tags not listed here are ignored.
-#   title_suffixes  site names to strip from the end of headlines
+#   title_suffixes  site names or markers like "(VIDEO)" to strip from the end of headlines
+#   enabled         set to false to pause a source (default true)
 
 settings:
   user_agent: "sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)"
@@ -25,6 +26,9 @@ settings:
 sources:
   - id: adaderana
     name: Ada Derana Sinhala
+    # Disabled 2026-10-11: returns HTTP 403 (server: CloudFront) to GitHub Actions IPs,
+    # although it works from Sri Lanka. Re-test with the "Check feeds" workflow.
+    enabled: false
     homepage: https://sinhala.adaderana.lk/
     title_suffixes: ["Ada Derana Sinhala", "Ada Derana", "අද දෙරණ"]
     feeds:
@@ -57,6 +61,9 @@ sources:
 
   - id: dinamina
     name: Dinamina
+    # Disabled 2026-10-11: returns HTTP 403 (server: cloudflare) to GitHub Actions IPs,
+    # although it works from Sri Lanka. Re-test with the "Check feeds" workflow.
+    enabled: false
     homepage: https://www.dinamina.lk/
     title_suffixes: ["Dinamina", "දිනමිණ"]
     feeds:
@@ -84,6 +91,9 @@ sources:
 
   - id: divaina
     name: Divaina
+    # Disabled 2026-10-11: returns HTTP 403 (server: cloudflare) to GitHub Actions IPs,
+    # although it works from Sri Lanka. Re-test with the "Check feeds" workflow.
+    enabled: false
     homepage: https://www.divaina.lk/
     title_suffixes: ["Divaina", "දිවයින"]
     feeds:
@@ -126,3 +136,41 @@ sources:
       National Politics: politics
       Local News: local
       Crime & Law: local
+
+  - id: siyatha
+    name: Siyatha News
+    homepage: https://siyathanews.lk/
+    title_suffixes: ["(VIDEO)", "(PHOTOS)", "(වීඩියෝ)", "Siyatha News", "සියත නිව්ස්"]
+    feeds:
+      - url: https://siyathanews.lk/archives/category/sports-news/feed
+        default_category: sports
+      - url: https://siyathanews.lk/archives/category/business-news/feed
+        default_category: business
+      - url: https://siyathanews.lk/archives/category/world-news/feed
+        default_category: international
+      - url: https://siyathanews.lk/feed
+        default_category: local
+    category_map:
+      ක්‍රීඩා පුවත්: sports
+      ව්‍යාපාරික පුවත්: business
+      විදෙස් පුවත්: international
+      දේශීය පුවත්: local
+      විශේෂාංග පුවත්: other
+
+  - id: lankatruth
+    name: Lanka Truth
+    homepage: https://lankatruth.com/si/
+    title_suffixes: ["Lanka Truth", "ලංකා ට්‍රූත්"]
+    feeds:
+      - url: https://lankatruth.com/si/?feed=rss2&cat=6
+        default_category: sports
+      - url: https://lankatruth.com/si/?feed=rss2&cat=5
+        default_category: business
+      - url: https://lankatruth.com/si/?feed=rss2
+        default_category: local
+    category_map:
+      ක්‍රීඩා පුවත්: sports
+      ආර්ථික පුවත්: business
+      විදෙස් පුවත්: international
+      වංචා දූෂණ: local
+      පරිසර: local
