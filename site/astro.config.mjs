@@ -7,6 +7,10 @@ export default defineConfig({
   site: "https://dhananjaya-hbc.github.io",
   base: "/sinhala-news-corpus",
   trailingSlash: "always",
+  build: {
+    // The CSS is small (~8 KB); inlining it removes a render-blocking request
+    inlineStylesheets: "always",
+  },
   vite: {
     plugins: [tailwindcss()],
   },
