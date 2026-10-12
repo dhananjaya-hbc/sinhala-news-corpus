@@ -18,6 +18,7 @@ const { headlines, showCategory = true, showSource = true } = Astro.props;
       <span class="mt-1 block font-sans text-sm italic text-ink-3">No recent headlines in this section yet.</span>
     </p>
   ) : (
+    <h2 class="sr-only">සිරස්තල · Headlines</h2>
     <div class="news-columns md:columns-2 lg:columns-3">
       {headlines.map((h) => (
         <div class="pb-4">
