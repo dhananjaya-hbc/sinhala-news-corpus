@@ -22,6 +22,7 @@ import feedparser
 from collector.categories import pick_category
 from collector.config import Config, Feed, Source, load_config
 from collector.fetch import Fetcher, FetchError
+from collector.health import load_health, save_health, update_health
 from collector.sinhala_text import clean_headline, is_legacy_font_text, parse_sinhala_date
 from collector.storage import SeenIndex, append_rows, clean_url, load_seen
 
@@ -98,11 +99,21 @@ def process_entries(
 
 
 def collect_source(
-    source: Source, fetcher: Fetcher, seen: SeenIndex, now: datetime, min_sinhala_ratio: float
+    source: Source,
+    fetcher: Fetcher,
+    seen: SeenIndex,
+    now: datetime,
+    min_sinhala_ratio: float,
+    results: dict[str, tuple[str, str | None]] | None = None,
 ) -> tuple[list[dict[str, str]], Counter]:
-    """Fetch every feed of one source. A failing feed is logged and skipped."""
+    """Fetch every feed of one source. A failing feed is logged and skipped.
+
+    If ``results`` is given, each feed's outcome is recorded there as
+    ``url -> (source_id, error message or None)``.
+    """
     rows: list[dict[str, str]] = []
     stats: Counter = Counter()
+    results = {} if results is None else results
     for i, feed in enumerate(source.feeds):
         if i:
             fetcher.sleep(DELAY_BETWEEN_FEEDS)
@@ -113,8 +124,10 @@ def collect_source(
             feed_rows, feed_stats = process_entries(parsed.entries, source, feed, seen, now, min_sinhala_ratio)
         except Exception as exc:  # one bad feed must not stop the others
             stats["feeds_failed"] += 1
+            results[feed.url] = (source.id, f"{type(exc).__name__}: {exc}")
             log.error("%s: feed failed: %s: %s", source.id, type(exc).__name__, exc)
             continue
+        results[feed.url] = (source.id, None)
         stats["feeds_ok"] += 1
         stats.update(feed_stats)
         rows.extend(feed_rows)
@@ -123,17 +136,29 @@ def collect_source(
     return rows, stats
 
 
-def collect(config: Config, data_dir: str | Path, fetcher: Fetcher, now: datetime | None = None, dry_run: bool = False) -> int:
-    """Run one collection pass. Returns a process exit code."""
+def collect(
+    config: Config,
+    data_dir: str | Path,
+    fetcher: Fetcher,
+    now: datetime | None = None,
+    dry_run: bool = False,
+    health_path: str | Path | None = None,
+) -> int:
+    """Run one collection pass. Returns a process exit code.
+
+    With ``health_path``, failing feeds are remembered across runs there
+    (see collector.health) so repeated failures can raise an alert.
+    """
     now = now or datetime.now(timezone.utc)
     seen = load_seen(data_dir)
     log.info("loaded %d known URLs from %s", len(seen.urls), data_dir)
 
     all_rows: list[dict[str, str]] = []
     failed: list[str] = []
+    results: dict[str, tuple[str, str | None]] = {}
     for source in config.sources:
         try:
-            rows, stats = collect_source(source, fetcher, seen, now, config.settings.min_sinhala_ratio)
+            rows, stats = collect_source(source, fetcher, seen, now, config.settings.min_sinhala_ratio, results)
         except Exception as exc:  # one bad source must not stop the others
             failed.append(source.id)
             log.error("%s: FAILED: %s", source.id, exc)
@@ -146,6 +171,11 @@ def collect(config: Config, data_dir: str | Path, fetcher: Fetcher, now: datetim
     else:
         for path, count in append_rows(data_dir, all_rows).items():
             log.info("wrote %d rows to %s", count, path)
+        if health_path:
+            today = now.astimezone(SRI_LANKA_TZ).date().isoformat()
+            health = update_health(load_health(health_path), results, today)
+            if save_health(health_path, health):
+                log.info("updated %s: %d failing feed(s)", health_path, len(health["failing"]))
     log.info("done: %d new headlines, %d/%d sources failed %s", len(all_rows), len(failed), len(config.sources), failed or "")
     return 1 if config.sources and len(failed) == len(config.sources) else 0
 
@@ -155,13 +185,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--config", default="sources.yaml")
     parser.add_argument("--data-dir", default="data/raw")
     parser.add_argument("--dry-run", action="store_true", help="fetch and report, but write nothing")
+    parser.add_argument("--health", default="data/health.json", help="where failing feeds are remembered between runs")
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s", stream=sys.stdout)
     config = load_config(args.config)
     s = config.settings
     fetcher = Fetcher(s.user_agent, timeout=s.timeout, retries=s.retries, backoff=s.backoff)
-    return collect(config, args.data_dir, fetcher, dry_run=args.dry_run)
+    return collect(config, args.data_dir, fetcher, dry_run=args.dry_run, health_path=args.health)
 
 
 if __name__ == "__main__":
