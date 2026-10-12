@@ -1,7 +1,11 @@
 ---
+// Two Sinhala weights: 500 for text, 800 for headlines (bold requests use 800)
 import "@fontsource/abhaya-libre/500.css";
-import "@fontsource/abhaya-libre/700.css";
 import "@fontsource/abhaya-libre/800.css";
+import sinhala500 from "@fontsource/abhaya-libre/files/abhaya-libre-sinhala-500-normal.woff2?url";
+import sinhala800 from "@fontsource/abhaya-libre/files/abhaya-libre-sinhala-800-normal.woff2?url";
+import { getImage } from "astro:assets";
+import ogSource from "../assets/archive/colombo-harbour-1901.jpg";
 import "@fontsource/old-standard-tt/400.css";
 import "@fontsource/old-standard-tt/400-italic.css";
 import "@fontsource/old-standard-tt/700.css";
@@ -39,6 +43,7 @@ const todayCount = data.headlines.filter((h) => h.d === data.headlines[0]?.d).le
 const sectionLink = "block whitespace-nowrap px-3 py-2 text-[1.02rem] transition-colors sm:px-4";
 const utilityLink = "px-1.5 py-0.5 hover:underline";
 const ear = "hidden w-40 border-2 border-ink p-2 text-center leading-tight md:block";
+const ogImage = await getImage({ src: ogSource, width: 1200, format: "jpg", quality: 70 });
 ---
 
 <!doctype html>
@@ -54,7 +59,9 @@ const ear = "hidden w-40 border-2 border-ink p-2 text-center leading-tight md:bl
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={new URL(url("archive/colombo-harbour-1901.jpg"), Astro.site).href} />
+    <meta property="og:image" content={new URL(ogImage.src, Astro.site).href} />
+    <link rel="preload" as="font" type="font/woff2" href={sinhala800} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={sinhala500} crossorigin />
     <meta name="theme-color" content="#ece8de" />
     <script is:inline>
       // Runs before the page paints, so a dark-mode reader never sees a light flash.
@@ -116,7 +123,7 @@ const ear = "hidden w-40 border-2 border-ink p-2 text-center leading-tight md:bl
             </div>
           )
         }
-        <a href={url()} class="mx-auto block text-center" aria-label="සිංහල පුවත් — front page">
+        <a href={url()} class="mx-auto block text-center">
           <span class:list={["block font-serif font-extrabold leading-[1]", compact ? "text-[2.6rem] sm:text-[3.4rem]" : "text-[3.5rem] sm:text-[5.8rem] lg:text-[7rem]"]}>
             සිංහල පුවත්
           </span>
@@ -231,7 +238,11 @@ const ear = "hidden w-40 border-2 border-ink p-2 text-center leading-tight md:bl
 
       toggle.addEventListener("click", () => {
         const dark = !root.classList.contains("dark");
+        // Switch instantly: with colour transitions running, text would briefly
+        // keep the old ink on the new paper and seem to vanish.
+        root.classList.add("theme-switching");
         apply(dark);
+        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-switching")));
         try {
           localStorage.setItem("theme", dark ? "dark" : "light");
         } catch {}
