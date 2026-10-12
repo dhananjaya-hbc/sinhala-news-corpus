@@ -2,10 +2,10 @@ name: Daily collect
 
 on:
   schedule:
-    - cron: "0 1 * * *" # 01:00 UTC = 06:30 Sri Lanka time (UTC+5:30, no DST)
-    # Backup: GitHub can drop scheduled runs at busy times (the top of the hour).
-    # Deduplication makes a second run harmless; it only adds what the first missed.
-    - cron: "17 3 * * *" # 03:17 UTC = 08:47 Sri Lanka time
+    # Every 6 hours: 06:30, 12:30, 18:30 and 00:30 Sri Lanka time (UTC+5:30, no DST).
+    # Feeds only hold their latest 10-50 items, so frequent runs catch more headlines.
+    # If GitHub drops a run at a busy time, the next one picks up what it missed.
+    - cron: "0 1,7,13,19 * * *"
   workflow_dispatch:
 
 permissions:
