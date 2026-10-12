@@ -70,17 +70,7 @@ export function countBy<K extends string>(headlines: Headline[], key: (h: Headli
 
 // --- Dates -----------------------------------------------------------------
 
-const atMidnight = (isoDate: string) => new Date(`${isoDate}T00:00:00Z`);
-const fullDate = new Intl.DateTimeFormat("si-LK", { dateStyle: "full", timeZone: "UTC" });
-const longDate = new Intl.DateTimeFormat("si-LK", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
-const weekday = new Intl.DateTimeFormat("si-LK", { weekday: "long", timeZone: "UTC" });
-
-/** "2026-10-11" -> "2026 ඔක්තෝබර් 11, ඉරිදා" */
-export const formatDate = (isoDate: string) => fullDate.format(atMidnight(isoDate));
-/** "2026-10-11" -> "2026 ඔක්තෝබර් 11" */
-export const formatLongDate = (isoDate: string) => longDate.format(atMidnight(isoDate));
-/** "2026-10-11" -> "ඉරිදා" */
-export const formatWeekday = (isoDate: string) => weekday.format(atMidnight(isoDate));
+export { formatDate, formatLongDate, formatWeekday } from "./sinhala-dates";
 
 /** UTC timestamp -> calendar date in Sri Lanka (UTC+5:30, no DST). */
 const sriLankaDate = (utc: string) => new Date(Date.parse(utc) + 5.5 * 3_600_000).toISOString().slice(0, 10);
