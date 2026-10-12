@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  issues: write # open/close alerts for failing sources
 
 concurrency:
   group: daily-collect
@@ -37,12 +38,17 @@ jobs:
         run: python -m pytest -q
 
       - name: Collect headlines
+        id: collect
         run: python -m collector.collect
 
+      # The steps below also run when collection failed (e.g. every source was
+      # down), so the failure is remembered in data/health.json and alerted on.
       - name: Update STATS.md
+        if: ${{ !cancelled() && steps.collect.outcome != 'skipped' }}
         run: python scripts/stats.py
 
       - name: Commit and push if data changed
+        if: ${{ !cancelled() && steps.collect.outcome != 'skipped' }}
         env:
           COMMIT_NAME: ${{ vars.COMMIT_NAME || 'github-actions[bot]' }}
           COMMIT_EMAIL: ${{ vars.COMMIT_EMAIL || '41898282+github-actions[bot]@users.noreply.github.com' }}
@@ -55,9 +61,19 @@ jobs:
           fi
           git config user.name "$COMMIT_NAME"
           git config user.email "$COMMIT_EMAIL"
-          git commit -m "data: daily headlines $(TZ=Asia/Colombo date +%F)"
+          if [ "$(git diff --cached --name-only)" = "data/health.json" ]; then
+            git commit -m "chore: update feed health $(TZ=Asia/Colombo date +%F)"
+          else
+            git commit -m "data: daily headlines $(TZ=Asia/Colombo date +%F)"
+          fi
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Open or close alerts for failing sources
+        if: ${{ !cancelled() && steps.collect.outcome != 'skipped' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/source_alerts.py
 
   site:
     needs: collect
