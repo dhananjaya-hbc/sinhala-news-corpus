@@ -1,11 +1,12 @@
 ---
 import Label from "../components/Label.astro";
 import Base from "../layouts/Base.astro";
+import { ARCHIVE } from "../lib/archive";
 import { CATEGORIES, REPO_URL, SECTION_ORDER, data } from "../lib/data";
 
 const nf = new Intl.NumberFormat("en-US");
 const h2 = "mt-12 mb-3 border-t-2 border-ink pt-3 font-serif text-[1.7rem] font-extrabold leading-tight";
-const a = "underline decoration-rule underline-offset-4 hover:text-accent";
+const a = "underline underline-offset-4 hover:text-ink";
 ---
 
 <Base title="About" active="about" compact description="About the Sinhala News Corpus: an open, labelled dataset of Sinhala news headlines.">
@@ -68,11 +69,28 @@ const a = "underline decoration-rule underline-offset-4 hover:text-accent";
 
     <h2 class={h2}>Copyright and ethics</h2>
     <ul class="list-disc space-y-2 pl-5 leading-[1.8] text-ink-2 marker:text-accent">
-      <li>Only the headline, link, date and topic are stored. Article text and images are never copied, and article pages are never requested.</li>
+      <li>Only the headline, link, date and topic are stored. Article text and news photographs are never copied, and article pages are never requested.</li>
+      <li>The photographs on this site are public-domain archive pictures of Ceylon from around 1900. They illustrate sections, never individual stories, and every one is captioned as an archive photograph.</li>
       <li>Headlines remain the property of their publishers. Every headline links to the original article, so readers go to the publisher.</li>
       <li>robots.txt is checked before every request, and each site is visited once a day.</li>
       <li>Publishers who want their headlines removed can <a class={a} href={`${REPO_URL}/issues/new`}>open an issue</a>; the source will be disabled and its rows removed.</li>
     </ul>
+
+    <h2 class={h2}>Picture credits</h2>
+    <p class="mb-3 leading-[1.8] text-ink-2">
+      All photographs are in the public domain and were obtained through Wikimedia Commons. They are shown in greyscale with a
+      printed halftone screen.
+    </p>
+    <ol class="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-ink-2">
+      {
+        ARCHIVE.map((p) => (
+          <li>
+            <span class="text-ink">{p.si}</span> — <span class="font-sans italic">{p.en}</span> ({p.year}). {p.credit}.{" "}
+            <a class={a} href={p.source} target="_blank" rel="noopener">Wikimedia Commons</a>
+          </li>
+        ))
+      }
+    </ol>
 
     <h2 class={h2}>Use the data</h2>
     <p class="leading-[1.8] text-ink-2">
