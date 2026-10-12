@@ -1,0 +1,6 @@
+# For notebooks/ (exploratory analysis); not needed by the collector
+-r requirements-dev.txt
+matplotlib>=3.9,<4
+nbformat>=5.10,<6
+nbconvert>=7.16,<8
+ipykernel>=6.29,<8
