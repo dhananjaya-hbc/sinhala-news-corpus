@@ -96,7 +96,7 @@ STATS.md breaks every count down by source, so you can filter or re-weight them.
 ## How it works
 
 ```
-GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka)
+GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka, backup at 08:47)
   └─ pytest                    # the cleaning rules must pass first
   └─ python -m collector.collect
        for each source / feed in sources.yaml
@@ -213,8 +213,9 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
 - **robots.txt is respected.** It is checked before every feed request, both for
   this project's user agent and for `*`. If robots.txt can't be reached, the
   site is treated as disallowed (RFC 9309).
-- **Once per day,** with a 1 s pause between feeds of the same site: about 25 small
-  requests a day in total.
+- **Once a day,** at 06:30 Sri Lanka time, with a backup check at 08:47 in case GitHub
+  drops the first run (deduplication means the backup adds nothing on a normal day).
+  There is a 1 s pause between feeds of the same site: about 25 small requests per run.
 - **Identifiable:** requests use the User-Agent
   `sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)`.
 - **Credit and removal:** every row names its source and links back to it.
