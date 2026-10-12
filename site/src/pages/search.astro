@@ -49,6 +49,8 @@ const pill = "border px-3 py-1 text-sm transition-colors";
 </Base>
 
 <script>
+  import { formatLongDate } from "../lib/sinhala-dates";
+
   interface Hit {
     d: string;
     s: string;
@@ -69,12 +71,6 @@ const pill = "border px-3 py-1 text-sm transition-colors";
   const categories = JSON.parse(results.dataset.categories ?? "{}") as Record<string, string>;
   const sources = JSON.parse(results.dataset.sources ?? "{}") as Record<string, string>;
   let category = "";
-  // Spelled out here because some browsers ship without Sinhala date formatting
-  const MONTHS = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
-  const sinhalaDate = (iso: string) => {
-    const [year, month, day] = iso.split("-").map(Number);
-    return `${year} ${MONTHS[month - 1]} ${day}`;
-  };
 
   // Match the way the corpus is cleaned: NFC, no zero-width characters, case-folded.
   // So "ශ්රී" (typed without ZWJ) still finds "ශ්‍රී".
@@ -103,7 +99,7 @@ const pill = "border px-3 py-1 text-sm transition-colors";
     const meta = el("p", "mt-1 flex flex-wrap items-center justify-center gap-x-2 text-[0.78rem] text-ink-3");
     const source = el("a", "font-sans uppercase tracking-[0.12em] hover:text-ink", sources[hit.s] ?? hit.s);
     source.href = `${base}source/${hit.s}/`;
-    const time = el("time", "", sinhalaDate(hit.d));
+    const time = el("time", "", formatLongDate(hit.d));
     time.dateTime = hit.d;
     meta.append(source, el("span", "", "·"), time);
     wrap.append(kicker, h3, meta);
