@@ -4,9 +4,9 @@ import Photo from "../components/Photo.astro";
 import Story from "../components/Story.astro";
 import Base from "../layouts/Base.astro";
 import { SECTION_PHOTO, photoOfTheDay } from "../lib/archive";
-import { CATEGORIES, SECTION_ORDER, countBy, data, editionNumber, formatDate, frontPage, url } from "../lib/data";
+import { BADGE_MIN_PUBLISHERS, CATEGORIES, SECTION_ORDER, countBy, data, editionNumber, formatDate, frontPage, sourceName, url } from "../lib/data";
 
-const { lead, also, sections, latestDay, latestCount } = frontPage(data.headlines, 7, 4);
+const { lead, leadCoverage, also, sections, latestDay, latestCount, publishers: coverage } = frontPage(data.headlines, data.stories, 7, 4);
 const leftColumn = also.slice(0, 4);
 const underPhoto = also.slice(4);
 const archive = photoOfTheDay(editionNumber);
@@ -31,6 +31,22 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
         <div class="mx-auto max-w-5xl">
           <Story h={lead} size="banner" date center kicker={false} />
         </div>
+        {leadCoverage.length + 1 >= BADGE_MIN_PUBLISHERS && (
+          <div class="mx-auto mt-5 max-w-3xl border-t border-ink pt-3">
+            <p class="text-sm font-bold">
+              මෙම පුවත ප්‍රකාශකයන් {leadCoverage.length + 1} දෙනෙක් වාර්තා කළා
+              <span class="ml-1 font-sans text-xs font-normal uppercase italic tracking-[0.14em] text-ink-3">Reported by {leadCoverage.length + 1} publishers</span>
+            </p>
+            <ul class="mt-2 space-y-1 text-[0.95rem]">
+              {leadCoverage.map((h) => (
+                <li>
+                  <span class="font-sans text-xs uppercase tracking-[0.12em] text-ink-3">{sourceName(h.s)}:</span>{" "}
+                  <a class="headline-link font-serif font-bold" href={h.u} target="_blank" rel="noopener">{h.h}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
     )
   }
@@ -40,7 +56,7 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
     <section class="lg:col-span-3 lg:border-r lg:border-ink lg:pr-6" aria-label="Also today">
       <Label as="h2" si="අද තවත් පුවත්" en="Also today" class="mb-3 justify-center border-b border-ink pb-1" />
       <div class="space-y-4">
-        {leftColumn.map((h) => <Story h={h} size="md" center dash />)}
+        {leftColumn.map((h) => <Story h={h} size="md" center dash publishers={coverage.get(h.u)} />)}
       </div>
     </section>
 
@@ -52,7 +68,7 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
           <div class="news-columns mt-6 border-t border-ink pt-4 sm:columns-2">
             {underPhoto.map((h) => (
               <div class="pb-4">
-                <Story h={h} center dash />
+                <Story h={h} center dash publishers={coverage.get(h.u)} />
               </div>
             ))}
           </div>
@@ -65,15 +81,15 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
         <Label as="h2" si="මෙම කලාපය" en="This edition" class="justify-center" />
         <dl class="mt-3 grid grid-cols-3 gap-2 lg:grid-cols-1 lg:gap-3">
           <div class="flex flex-col-reverse">
-            <dt class="text-xs text-ink-2">{latestDay ? formatDate(latestDay) : ""}</dt>
+            <dt class="text-sm text-ink-2">{latestDay ? formatDate(latestDay) : ""}</dt>
             <dd class="font-sans text-4xl font-bold leading-none">{nf.format(latestCount)}</dd>
           </div>
           <div class="flex flex-col-reverse">
-            <dt class="text-xs text-ink-2">පසුගිය දින {data.days}</dt>
+            <dt class="text-sm text-ink-2">පසුගිය දින {data.days}</dt>
             <dd class="font-sans text-4xl font-bold leading-none">{nf.format(data.headlines.length)}</dd>
           </div>
           <div class="flex flex-col-reverse">
-            <dt class="text-xs text-ink-2">මුළු දත්ත කට්ටලය</dt>
+            <dt class="text-sm text-ink-2">මුළු දත්ත කට්ටලය</dt>
             <dd class="font-sans text-4xl font-bold leading-none">{nf.format(data.total_all_time)}</dd>
           </div>
         </dl>
@@ -124,7 +140,7 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
               <h2 id={`sec-${s.id}`} class="font-serif text-[1.6rem] font-extrabold leading-tight">
                 <a href={url(`category/${s.id}/`)} class="hover:underline">{CATEGORIES[s.id].si}</a>
               </h2>
-              <p class="font-sans text-[0.66rem] uppercase italic tracking-[0.22em] text-ink-3">{CATEGORIES[s.id].en}</p>
+              <p class="font-sans text-[0.74rem] uppercase italic tracking-[0.22em] text-ink-3">{CATEGORIES[s.id].en}</p>
             </header>
             <Photo photo={SECTION_PHOTO[s.id]} aspect="16/9" caption="short" sizes="(min-width: 1024px) 340px, (min-width: 768px) 45vw, 100vw" class="mb-4" />
             <div class="space-y-4">
@@ -132,7 +148,7 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
                 <Story h={h} kicker={false} center dash />
               ))}
             </div>
-            <p class="mt-3 text-center font-sans text-xs italic">
+            <p class="mt-3 text-center font-sans text-sm italic">
               <a href={url(`category/${s.id}/`)} class="underline underline-offset-4">{CATEGORIES[s.id].en}: all headlines →</a>
             </p>
           </section>
