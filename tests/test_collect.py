@@ -132,3 +132,31 @@ def test_article_text_never_stored(tmp_path):
     config = Config(settings=SETTINGS, sources=(ADA,))
     collect(config, tmp_path, FakeFetcher({ADA.feeds[0].url: RSS}), now=NOW)
     assert "full article text" not in (tmp_path / "2026-10.csv").read_text(encoding="utf-8")
+
+
+def test_failing_feeds_are_remembered_in_health_file(tmp_path):
+    import json
+
+    health = tmp_path / "health.json"
+    config = Config(settings=SETTINGS, sources=(BROKEN, ADA))
+    fetcher = FakeFetcher({ADA.feeds[0].url: RSS})
+    collect(config, tmp_path / "raw", fetcher, now=NOW, health_path=health)
+    state = json.loads(health.read_text(encoding="utf-8"))
+    assert list(state["failing"]) == [BROKEN.feeds[0].url]
+    entry = state["failing"][BROKEN.feeds[0].url]
+    assert entry["source"] == "broken" and entry["days"] == ["2026-10-11"]
+    assert "HTTP 503" in entry["last_error"]
+
+
+def test_healthy_run_creates_no_health_file(tmp_path):
+    health = tmp_path / "health.json"
+    config = Config(settings=SETTINGS, sources=(ADA,))
+    collect(config, tmp_path / "raw", FakeFetcher({ADA.feeds[0].url: RSS}), now=NOW, health_path=health)
+    assert not health.exists()
+
+
+def test_dry_run_does_not_touch_health_file(tmp_path):
+    health = tmp_path / "health.json"
+    config = Config(settings=SETTINGS, sources=(BROKEN,))
+    collect(config, tmp_path / "raw", FakeFetcher({}), now=NOW, dry_run=True, health_path=health)
+    assert not health.exists()
