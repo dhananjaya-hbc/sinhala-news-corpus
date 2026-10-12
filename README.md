@@ -6,7 +6,7 @@
 [![Website](https://img.shields.io/badge/website-live-orange.svg)](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)
 
 An open, growing dataset of **Sinhala news headlines with topic labels**.
-GitHub Actions collects it automatically every morning from public RSS
+GitHub Actions collects it automatically four times a day from public RSS
 feeds of Sri Lankan news sites, with no human in the loop.
 
 **Browse the latest headlines: [dhananjaya-hbc.github.io/sinhala-news-corpus](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)**
@@ -96,7 +96,7 @@ STATS.md breaks every count down by source, so you can filter or re-weight them.
 ## How it works
 
 ```
-GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka, backup at 08:47)
+GitHub Actions (every 6 hours: 06:30, 12:30, 18:30, 00:30 Sri Lanka time)
   └─ pytest                    # the cleaning rules must pass first
   └─ python -m collector.collect
        for each source / feed in sources.yaml
@@ -220,9 +220,10 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
 - **robots.txt is respected.** It is checked before every feed request, both for
   this project's user agent and for `*`. If robots.txt can't be reached, the
   site is treated as disallowed (RFC 9309).
-- **Once a day,** at 06:30 Sri Lanka time, with a backup check at 08:47 in case GitHub
-  drops the first run (deduplication means the backup adds nothing on a normal day).
-  There is a 1 s pause between feeds of the same site: about 25 small requests per run.
+- **Four times a day,** every 6 hours (06:30, 12:30, 18:30 and 00:30 Sri Lanka time).
+  Feeds only hold their latest items, so this catches headlines that would otherwise
+  scroll off between runs. There is a 1 s pause between feeds of the same site: about
+  25 small requests per run, so each site gets roughly 16-20 feed requests a day.
 - **Identifiable:** requests use the User-Agent
   `sinhala-news-corpus/1.0 (+https://github.com/dhananjaya-hbc/sinhala-news-corpus)`.
 - **Credit and removal:** every row names its source and links back to it.
@@ -241,9 +242,9 @@ Headlines below **0.3** (configurable as `min_sinhala_ratio`) are skipped and lo
 
 ## Known limitations
 
-- Feeds only list their latest 10–25 items, so a daily snapshot captures part of
-  each site's output, not all of it. Section feeds are used where possible to
-  widen coverage.
+- Feeds only list their latest 10–50 items. Collecting every 6 hours and using
+  section feeds captures most of each site's output, but a very busy site can still
+  publish more between two runs than its feed holds.
 - Labels are the publishers' own categories: useful but noisy, and imbalanced.
   `politics` is the smallest class: most sites have no politics section, and
   political stories are often filed under local news.
