@@ -1,0 +1,48 @@
+---
+// A public-domain archive photograph, printed with a halftone screen.
+// The caption always says "Archive photograph" and the year, so it is never
+// mistaken for a picture of the day's news.
+import type { ArchivePhoto } from "../lib/archive";
+import { url } from "../lib/data";
+
+interface Props {
+  photo: ArchivePhoto;
+  aspect?: string; // e.g. "3/2"; crops with object-fit: cover
+  frameClass?: string; // responsive aspect classes, e.g. "aspect-[16/9] sm:aspect-[21/8]"
+  sizes?: string;
+  eager?: boolean;
+  caption?: "full" | "short";
+  class?: string;
+}
+
+const { photo, aspect, frameClass, sizes = "(min-width: 1024px) 50vw, 100vw", eager = false, caption = "full", class: className } = Astro.props;
+const small = url(`archive/${photo.id}-sm.jpg`);
+const large = url(`archive/${photo.id}.jpg`);
+---
+
+<figure class={className}>
+  <div class:list={["halftone border border-ink", frameClass]} style={aspect ? `aspect-ratio:${aspect}` : undefined}>
+    <img
+      src={small}
+      srcset={`${small} 720w, ${large} ${photo.w}w`}
+      sizes={sizes}
+      width={photo.w}
+      height={photo.h}
+      alt={`${photo.en} (${photo.year})`}
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
+    />
+  </div>
+  <figcaption class="mt-2 text-[0.86rem] leading-snug text-ink-2">
+    <span class="font-bold text-ink">ලේඛනාගාර ඡායාරූපය, {photo.year}.</span>
+    {" "}{photo.si}.
+    {
+      caption === "full" && (
+        <span class="mt-0.5 block font-sans italic text-ink-3">
+          {photo.en}. {photo.credit}.{" "}
+          <a class="underline underline-offset-2 hover:text-ink" href={photo.source} target="_blank" rel="noopener">Public domain</a>
+        </span>
+      )
+    }
+  </figcaption>
+</figure>
