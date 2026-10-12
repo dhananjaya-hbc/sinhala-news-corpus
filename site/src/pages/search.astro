@@ -1,17 +1,16 @@
 ---
-import Label from "../components/Label.astro";
 import Base from "../layouts/Base.astro";
 import { CATEGORIES, CATEGORY_IDS, SECTION_ORDER, data, url } from "../lib/data";
 
 const categoryNames = Object.fromEntries(CATEGORY_IDS.map((id) => [id, CATEGORIES[id].si]));
 const sourceNames = Object.fromEntries(data.sources.map((s) => [s.id, s.name]));
 const filters = [...SECTION_ORDER, "other" as const];
-const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors";
+const pill = "border px-3 py-1 text-sm transition-colors";
 ---
 
 <Base title="සොයන්න" active="search" compact description="Search recent Sinhala news headlines.">
-  <header class="mb-6">
-    <Label si="ලේඛනාගාරය" en="Archive search" />
+  <header class="mb-6 text-center">
+    <p class="text-sm text-ink-3">— <span class="font-sans text-xs uppercase italic tracking-[0.3em]">Archive search</span> · <span class="font-bold">ලේඛනාගාරය</span> —</p>
     <h1 class="mt-1 font-serif text-[3rem] font-extrabold leading-[1.1] sm:text-[3.8rem]">සොයන්න</h1>
     <p class="mt-1 text-sm text-ink-2">පසුගිය දින {data.days} තුළ සිරස්තල {data.headlines.length}ක් අතර සොයන්න.</p>
   </header>
@@ -23,13 +22,13 @@ const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors"
       type="search"
       autocomplete="off"
       placeholder="ක්‍රිකට්, IMF, ශ්‍රී ලංකා…"
-      class="w-full rounded-none border-0 border-b-2 border-ink bg-transparent px-0 py-3 font-serif text-[1.9rem] text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none focus-visible:outline-none sm:text-[2.4rem]"
+      class="w-full rounded-none border-0 border-y-2 border-ink bg-transparent px-1 py-3 text-center font-serif text-[1.9rem] text-ink placeholder:text-ink-3 focus:bg-paper-2 focus:outline-none focus-visible:outline-none sm:text-[2.4rem]"
     />
-    <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by section">
+    <div class="mt-4 flex flex-wrap justify-center gap-2" role="group" aria-label="Filter by section">
       <button type="button" data-cat="" aria-pressed="true" class:list={[pill, "border-ink bg-ink text-paper"]}>සියල්ල</button>
       {
         filters.map((id) => (
-          <button type="button" data-cat={id} aria-pressed="false" class:list={[pill, "border-rule text-ink-2 hover:border-ink hover:text-ink"]}>
+          <button type="button" data-cat={id} aria-pressed="false" class:list={[pill, "border-ink text-ink hover:bg-paper-2"]}>
             {CATEGORIES[id].si}
           </button>
         ))
@@ -37,7 +36,7 @@ const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors"
     </div>
   </form>
 
-  <p id="status" class="mb-2 border-b-2 border-ink pb-2 font-sans text-sm text-ink-2" aria-live="polite"></p>
+  <p id="status" class="mb-4 border-b border-ink pb-2 text-center text-sm text-ink-2" aria-live="polite"></p>
   <div
     id="results"
     class="news-columns md:columns-2 lg:columns-3"
@@ -60,7 +59,7 @@ const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors"
 
   const MAX_RESULTS = 120;
   const ACTIVE = ["border-ink", "bg-ink", "text-paper"];
-  const IDLE = ["border-rule", "text-ink-2", "hover:border-ink", "hover:text-ink"];
+  const IDLE = ["border-ink", "text-ink", "hover:bg-paper-2"];
 
   const results = document.getElementById("results") as HTMLDivElement;
   const input = document.getElementById("q") as HTMLInputElement;
@@ -92,8 +91,8 @@ const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors"
   }
 
   function story(hit: Hit) {
-    const wrap = el("div", "border-b border-rule py-4");
-    const kicker = el("a", "mb-1 inline-block font-sans text-[0.8rem] font-semibold text-accent hover:underline", categories[hit.c] ?? hit.c);
+    const wrap = el("div", "story-dash pb-4 text-center");
+    const kicker = el("a", "mb-0.5 inline-block text-[0.8rem] font-bold text-ink-2 hover:underline", categories[hit.c] ?? hit.c);
     kicker.href = `${base}category/${hit.c}/`;
     const h3 = el("h3", "font-serif text-[1.15rem] font-bold leading-[1.48] text-ink");
     const link = el("a", "headline-link", hit.h);
@@ -101,8 +100,8 @@ const pill = "rounded-full border px-3 py-1 font-sans text-sm transition-colors"
     link.target = "_blank";
     link.rel = "noopener";
     h3.append(link);
-    const meta = el("p", "mt-1.5 flex flex-wrap items-center gap-x-2 font-sans text-[0.78rem] text-ink-3");
-    const source = el("a", "font-medium uppercase tracking-[0.12em] hover:text-ink", sources[hit.s] ?? hit.s);
+    const meta = el("p", "mt-1 flex flex-wrap items-center justify-center gap-x-2 text-[0.78rem] text-ink-3");
+    const source = el("a", "font-sans uppercase tracking-[0.12em] hover:text-ink", sources[hit.s] ?? hit.s);
     source.href = `${base}source/${hit.s}/`;
     const time = el("time", "", sinhalaDate(hit.d));
     time.dateTime = hit.d;
