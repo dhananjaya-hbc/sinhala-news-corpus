@@ -1,7 +1,8 @@
 ---
 import HeadlineColumns from "../../components/HeadlineColumns.astro";
-import Label from "../../components/Label.astro";
+import Photo from "../../components/Photo.astro";
 import Base from "../../layouts/Base.astro";
+import { SECTION_PHOTO } from "../../lib/archive";
 import { CATEGORIES, CATEGORY_IDS, countBy, data, sourceName, url, type CategoryId } from "../../lib/data";
 
 export function getStaticPaths() {
@@ -15,30 +16,30 @@ const bySource = [...countBy(headlines, (h) => h.s).entries()].sort((a, b) => b[
 ---
 
 <Base title={category.si} active={id} compact description={`Latest Sinhala ${category.en.toLowerCase()} news headlines from Sri Lankan publishers.`}>
-  <header class="mb-8 grid gap-4 border-b-2 border-ink pb-6 sm:grid-cols-[1fr_auto] sm:items-end">
-    <div>
-      <Label si="අංශය" en="Section" />
-      <h1 class="mt-1 font-serif text-[3.2rem] font-extrabold leading-[1.1] sm:text-[4.2rem]">{category.si}</h1>
-      <p class="mt-1 font-sans text-xs uppercase tracking-[0.32em] text-ink-2">{category.en}</p>
-    </div>
-    <div class="text-sm text-ink-2 sm:text-right">
-      <p>
-        <span class="font-serif text-3xl font-extrabold text-ink tabular-nums">{headlines.length}</span>
-        <span class="ml-1">සිරස්තල · පසුගිය දින {data.days}</span>
-      </p>
-      {
-        bySource.length > 0 && (
-          <p class="mt-1 text-ink-3">
-            {bySource.map(([s, n], i) => (
-              <>
-                {i > 0 && " · "}
-                <a href={url(`source/${s}/`)} class="hover:text-accent">{sourceName(s)}</a> {n}
-              </>
-            ))}
-          </p>
-        )
-      }
-    </div>
+  <header class="mb-6 text-center">
+    <p class="text-sm text-ink-3">— <span class="font-sans text-xs uppercase italic tracking-[0.3em]">Section</span> · <span class="font-bold">අංශය</span> —</p>
+    <h1 class="mt-1 font-serif text-[3.4rem] font-extrabold leading-[1.1] sm:text-[4.6rem]">{category.si}</h1>
+    <p class="font-blackletter text-2xl">{category.en}</p>
   </header>
+
+  <Photo photo={SECTION_PHOTO[id]} frameClass="aspect-[16/9] sm:aspect-[21/8]" eager sizes="(min-width: 1152px) 1104px, 100vw" class="mb-6" />
+
+  <p class="mb-8 border-y-2 border-ink py-2 text-center text-sm text-ink-2">
+    <span class="font-sans text-lg font-bold text-ink">{headlines.length}</span> සිරස්තල · පසුගිය දින {data.days}
+    {
+      bySource.length > 0 && (
+        <span class="mt-1 block font-sans text-ink-3 sm:mt-0 sm:inline">
+          <span class="hidden sm:inline"> — </span>
+          {bySource.map(([s, n], i) => (
+            <>
+              {i > 0 && " · "}
+              <a href={url(`source/${s}/`)} class="hover:underline">{sourceName(s)}</a> {n}
+            </>
+          ))}
+        </span>
+      )
+    }
+  </p>
+
   <HeadlineColumns headlines={headlines} showCategory={false} />
 </Base>
