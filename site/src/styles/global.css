@@ -4,37 +4,40 @@
    choice or their system setting (see the theme script in Base.astro). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Broadsheet design tokens. Day edition: ink on cream newsprint.
-   Night edition: warm ivory on deep charcoal. One accent: Sri Lankan red. */
+/* Old black-and-white newspaper. Day: black ink on aged newsprint.
+   Night: a negative print, ivory ink on black. No colour anywhere. */
 :root {
-  --paper: #f5efe3;
-  --paper-2: #ece3d1;
-  --ink: #1b1814;
-  --ink-2: #4c453c;
-  --ink-3: #6b6257;
-  --rule: #d3c6ae;
-  --accent: #a3161a;
-  --grain-opacity: 0.05;
+  --paper: #ece8de;
+  --paper-2: #dfdacd;
+  --ink: #111111;
+  --ink-2: #333333;
+  --ink-3: #555555;
+  --rule: #a8a397;
+  --accent: #111111;
+  --grain-opacity: 0.09;
+  --photo-filter: grayscale(1) contrast(1.12) brightness(1.02);
   color-scheme: light;
 }
 
 :root.dark {
-  --paper: #14110e;
-  --paper-2: #1d1915;
-  --ink: #efe7d7;
-  --ink-2: #c2b8a6;
-  --ink-3: #93897a;
-  --rule: #3b342c;
-  --accent: #ef6b5f;
-  --grain-opacity: 0.035;
+  --paper: #131313;
+  --paper-2: #1f1f1f;
+  --ink: #e9e5db;
+  --ink-2: #c6c2b8;
+  --ink-3: #9c988e;
+  --rule: #4f4c46;
+  --accent: #e9e5db;
+  --grain-opacity: 0.06;
+  --photo-filter: grayscale(1) contrast(1.05) brightness(0.82);
   color-scheme: dark;
 }
 
 @theme inline {
-  /* Abhaya Libre (headlines) and Yaldevi (text) are Sri Lankan typefaces
-     published by Mooniak; both shape ZWJ conjuncts such as ශ්‍රී and ප්‍ර. */
-  --font-serif: "Abhaya Libre", Georgia, "Times New Roman", serif;
-  --font-sans: "Yaldevi Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Sinhala: Abhaya Libre (Mooniak). Latin: Old Standard TT, a revival of
+     19th-century newspaper type; the nameplate uses UnifrakturMaguntia. */
+  --font-serif: "Abhaya Libre", "Old Standard TT", Georgia, "Times New Roman", serif;
+  --font-sans: "Old Standard TT", "Abhaya Libre", Georgia, "Times New Roman", serif;
+  --font-blackletter: "UnifrakturMaguntia", "Old Standard TT", serif;
 
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
@@ -55,9 +58,12 @@
     line-height: 1.7;
     text-rendering: optimizeLegibility;
     font-feature-settings: "kern" 1;
+    /* Aged paper: slightly darker towards the edges */
+    background-image: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.06) 100%);
+    background-attachment: fixed;
   }
 
-  /* Faint newsprint grain over the whole page */
+  /* Newsprint grain over the whole page */
   body::before {
     content: "";
     position: fixed;
@@ -65,20 +71,18 @@
     z-index: 50;
     pointer-events: none;
     opacity: var(--grain-opacity);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   ::selection {
-    background: var(--accent);
+    background: var(--ink);
     color: var(--paper);
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--ink);
     outline-offset: 3px;
-    border-radius: 2px;
   }
-
 
   /* Native search clear button clashes with the design; Esc still clears */
   input[type="search"]::-webkit-search-cancel-button {
@@ -87,10 +91,10 @@
 }
 
 @layer components {
-  /* Newspaper column flow for section and source pages */
+  /* Newspaper column flow with black column rules */
   .news-columns {
-    column-gap: 2.5rem;
-    column-rule: 1px solid var(--rule);
+    column-gap: 2.25rem;
+    column-rule: 1px solid var(--ink);
   }
 
   .news-columns > * {
@@ -101,29 +105,57 @@
     column-span: all;
   }
 
-  /* Thin-thick-thin masthead rule */
   .rule-masthead {
     border-top: 3px double var(--ink);
   }
 
-  /* Headline link: ink by default, red underline on hover like a proofreader's mark */
+  /* A short centred dash between stories, as in old column layouts */
+  .story-dash::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 1px;
+    margin: 0.9rem auto 0;
+    background: var(--ink);
+  }
+
+  /* Headline link: plain ink, underlined on hover */
   .headline-link {
     text-decoration: none;
-    background-image: linear-gradient(var(--accent), var(--accent));
-    background-size: 0% 1.5px;
-    background-position: 0 92%;
-    background-repeat: no-repeat;
-    transition: background-size 0.25s ease, color 0.2s ease;
   }
 
   .headline-link:hover {
-    color: var(--accent);
-    background-size: 100% 1.5px;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .headline-link {
-    transition: none;
+  /* Printed photograph: greyscale with a halftone dot screen on top */
+  .halftone {
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-2);
+  }
+
+  .halftone img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: var(--photo-filter);
+  }
+
+  .halftone::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle at center, rgb(0 0 0 / 0.38) 0.55px, transparent 1.05px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+  }
+
+  :root.dark .halftone::after {
+    background-image: radial-gradient(circle at center, rgb(0 0 0 / 0.55) 0.6px, transparent 1.1px);
   }
 }
