@@ -3,6 +3,9 @@ name: Daily collect
 on:
   schedule:
     - cron: "0 1 * * *" # 01:00 UTC = 06:30 Sri Lanka time (UTC+5:30, no DST)
+    # Backup: GitHub can drop scheduled runs at busy times (the top of the hour).
+    # Deduplication makes a second run harmless; it only adds what the first missed.
+    - cron: "17 3 * * *" # 03:17 UTC = 08:47 Sri Lanka time
   workflow_dispatch:
 
 permissions:
