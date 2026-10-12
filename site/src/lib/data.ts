@@ -23,6 +23,9 @@ export interface SiteData {
   days: number;
   total_all_time: number;
   headlines: Headline[];
+  /** Stories several publishers covered in the last two days, most covered first.
+   *  `items` index into `headlines`, most representative headline first. */
+  stories: { items: number[]; publishers: number }[];
   sources: Source[];
   categories: { id: CategoryId; count: number }[];
 }
@@ -95,24 +98,51 @@ export const editionNumber =
 
 export interface FrontPage {
   lead?: Headline;
+  /** The same story as told by other publishers (one headline each). */
+  leadCoverage: Headline[];
   also: Headline[];
   sections: { id: CategoryId; items: Headline[] }[];
   latestDay?: string;
   latestCount: number;
+  /** Number of publishers that covered a headline's story, by URL. Only stories
+   *  with BADGE_MIN_PUBLISHERS or more are listed: pairs are sometimes two
+   *  different stories that share a phrase, so they get no "reported by" badge. */
+  publishers: Map<string, number>;
+}
+
+/** Groups of three or more publishers have been reliable on real data; pairs less so. */
+export const BADGE_MIN_PUBLISHERS = 3;
+
+/** One headline per publisher, keeping the given order. */
+function onePerSource(items: Headline[]): Headline[] {
+  const seen = new Set<string>();
+  return items.filter((h) => !seen.has(h.s) && seen.add(h.s));
 }
 
 /**
- * Lay out the front page: a lead story from the latest day, an "also today"
- * strip that takes one story per section in turn (so it isn't all one topic),
- * then a block per section with its newest remaining stories.
+ * Lay out the front page like an editor would:
+ *  - lead: the story the most publishers covered in the last two days
+ *    (falls back to the first politics/world/business/local headline of the day);
+ *  - "also today": other multi-publisher stories first, then one headline per
+ *    section in turn so it isn't all one topic;
+ *  - then a block per section with its newest remaining headlines.
  */
-export function frontPage(headlines: Headline[] = data.headlines, alsoCount = 6, perSection = 5): FrontPage {
+export function frontPage(
+  headlines: Headline[] = data.headlines,
+  stories: SiteData["stories"] = data.stories ?? [],
+  alsoCount = 6,
+  perSection = 5,
+): FrontPage {
   const latestDay = headlines[0]?.d;
   const latest = headlines.filter((h) => h.d === latestDay);
-  const leadPreference: CategoryId[] = ["politics", "international", "business", "local"];
-  const lead = leadPreference.map((c) => latest.find((h) => h.c === c)).find(Boolean) ?? latest[0];
+  const storyItems = stories.map((s) => onePerSource(s.items.map((i) => headlines[i]).filter(Boolean)));
 
-  const used = new Set(lead ? [lead.u] : []);
+  const publishers = new Map<string, number>();
+  stories.forEach((s, k) => {
+    if (s.publishers >= BADGE_MIN_PUBLISHERS) storyItems[k].forEach((h) => publishers.set(h.u, s.publishers));
+  });
+
+  const used = new Set<string>();
   const take = (h?: Headline) => {
     if (h && !used.has(h.u)) {
       used.add(h.u);
@@ -120,7 +150,28 @@ export function frontPage(headlines: Headline[] = data.headlines, alsoCount = 6,
     }
   };
 
+  let lead: Headline | undefined;
+  let leadCoverage: Headline[] = [];
+  if (storyItems[0]?.length) {
+    [lead, ...leadCoverage] = storyItems[0];
+  } else {
+    const leadPreference: CategoryId[] = ["politics", "international", "business", "local"];
+    lead = leadPreference.map((c) => latest.find((h) => h.c === c)).find(Boolean) ?? latest[0];
+  }
+  take(lead);
+  leadCoverage.forEach((h) => take(h));
+  // Every headline of the lead story is "used", not only the one per publisher shown
+  stories[0]?.items.forEach((i) => headlines[i] && used.add(headlines[i].u));
+
   const also: Headline[] = [];
+  storyItems.slice(1).forEach((items, k) => {
+    if (also.length >= alsoCount) return;
+    const pick = take(items[0]);
+    if (pick) {
+      also.push(pick);
+      stories[k + 1].items.forEach((i) => headlines[i] && used.add(headlines[i].u));
+    }
+  });
   for (let round = 0; also.length < alsoCount && round < alsoCount; round++) {
     for (const c of SECTION_ORDER) {
       if (also.length >= alsoCount) break;
@@ -139,5 +190,5 @@ export function frontPage(headlines: Headline[] = data.headlines, alsoCount = 6,
     items: headlines.filter((h) => h.c === id && !used.has(h.u)).slice(0, perSection),
   })).filter((s) => s.items.length > 0);
 
-  return { lead, also, sections, latestDay, latestCount: latest.length };
+  return { lead, leadCoverage, also, sections, latestDay, latestCount: latest.length, publishers };
 }
