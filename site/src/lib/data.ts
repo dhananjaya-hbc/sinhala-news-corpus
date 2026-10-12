@@ -65,17 +65,6 @@ export function countBy<K extends string>(headlines: Headline[], key: (h: Headli
   return counts;
 }
 
-/** Group already-sorted headlines by date, keeping order. */
-export function groupByDate(headlines: Headline[]): [string, Headline[]][] {
-  const groups = new Map<string, Headline[]>();
-  for (const h of headlines) {
-    const list = groups.get(h.d);
-    if (list) list.push(h);
-    else groups.set(h.d, [h]);
-  }
-  return [...groups.entries()];
-}
-
 // --- Dates -----------------------------------------------------------------
 
 const atMidnight = (isoDate: string) => new Date(`${isoDate}T00:00:00Z`);
