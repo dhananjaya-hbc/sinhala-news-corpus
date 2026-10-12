@@ -1,6 +1,5 @@
 ---
 import HeadlineColumns from "../../components/HeadlineColumns.astro";
-import Label from "../../components/Label.astro";
 import Base from "../../layouts/Base.astro";
 import { CATEGORIES, SECTION_ORDER, countBy, data, url, type Source } from "../../lib/data";
 
@@ -16,35 +15,32 @@ const nf = new Intl.NumberFormat("en-US");
 ---
 
 <Base title={source.name} compact description={`Latest Sinhala news headlines from ${source.name}, linking to the original articles.`}>
-  <header class="mb-8 grid gap-4 border-b-2 border-ink pb-6 sm:grid-cols-[1fr_auto] sm:items-end">
-    <div>
-      <Label si="ප්‍රකාශකයා" en="Publisher" />
-      <h1 class="mt-1 font-serif text-[2.8rem] font-extrabold leading-[1.1] sm:text-[3.8rem]">{source.name}</h1>
-      {
-        source.homepage && (
-          <a class="mt-1 inline-block font-sans text-sm text-ink-2 underline decoration-rule underline-offset-4 hover:text-accent" href={source.homepage} target="_blank" rel="noopener">
-            {new URL(source.homepage).host} ↗
-          </a>
-        )
-      }
-    </div>
-    <div class="text-sm text-ink-2 sm:text-right">
-      <p>
-        <span class="font-serif text-3xl font-extrabold text-ink tabular-nums">{headlines.length}</span>
-        <span class="ml-1">සිරස්තල · පසුගිය දින {data.days}</span>
-      </p>
-      <p class="mt-1 text-ink-3">
-        {
-          topics.map((c, i) => (
-            <>
-              {i > 0 && " · "}
-              <a href={url(`category/${c}/`)} class="hover:text-accent">{CATEGORIES[c].si}</a> {byTopic.get(c)}
-            </>
-          ))
-        }
-      </p>
-      <p class="mt-1 text-ink-3">මුළු එකතුව {nf.format(source.count)}</p>
-    </div>
+  <header class="mb-6 text-center">
+    <p class="text-sm text-ink-3">— <span class="font-sans text-xs uppercase italic tracking-[0.3em]">Publisher</span> · <span class="font-bold">ප්‍රකාශකයා</span> —</p>
+    <h1 class="mt-1 font-sans text-[2.6rem] font-bold leading-[1.15] sm:text-[3.6rem]">{source.name}</h1>
+    {
+      source.homepage && (
+        <a class="mt-1 inline-block font-sans text-sm italic underline underline-offset-4" href={source.homepage} target="_blank" rel="noopener">
+          {new URL(source.homepage).host} ↗
+        </a>
+      )
+    }
   </header>
+
+  <p class="mb-8 border-y-2 border-ink py-2 text-center text-sm text-ink-2">
+    <span class="font-sans text-lg font-bold text-ink">{headlines.length}</span> සිරස්තල · පසුගිය දින {data.days}
+    <span class="font-sans text-ink-3"> — මුළු එකතුව {nf.format(source.count)}</span>
+    <span class="mt-1 block text-ink-3">
+      {
+        topics.map((c, i) => (
+          <>
+            {i > 0 && " · "}
+            <a href={url(`category/${c}/`)} class="hover:underline">{CATEGORIES[c].si}</a> {byTopic.get(c)}
+          </>
+        ))
+      }
+    </span>
+  </p>
+
   <HeadlineColumns headlines={headlines} showSource={false} />
 </Base>
