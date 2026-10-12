@@ -1,5 +1,5 @@
 ---
-// Section label: Sinhala text plus a small English gloss.
+// Section label: Sinhala text plus a small English gloss in small capitals.
 // Letter-spacing is applied to the English only: spacing out Sinhala
 // letters can break conjunct shaping (ශ්‍රී, ප්‍ර).
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 const { si, en, as: Tag = "p", class: className } = Astro.props;
 ---
 
-<Tag class:list={["flex flex-wrap items-baseline gap-x-2 font-sans text-[0.82rem] font-semibold text-accent", className]}>
+<Tag class:list={["flex flex-wrap items-baseline gap-x-2 text-[0.88rem] font-bold text-ink", className]}>
   <span>{si}</span>
-  {en && <span class="text-[0.66rem] font-medium uppercase tracking-[0.22em] text-ink-3">{en}</span>}
+  {en && <span class="font-sans text-[0.68rem] font-normal uppercase italic tracking-[0.18em] text-ink-3">{en}</span>}
 </Tag>
