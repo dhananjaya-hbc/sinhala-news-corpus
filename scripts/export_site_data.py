@@ -22,18 +22,35 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from collector.categories import LABELS  # noqa: E402
 from collector.storage import read_rows  # noqa: E402
+from collector.stories import Vectorizer, find_stories  # noqa: E402
+
+MAX_STORIES = 12
 
 
 def build(rows: list[dict[str, str]], sources: dict[str, dict[str, str]], days: int) -> dict:
     """Select headlines from the last ``days`` days (relative to the newest one) and summarise."""
     if not rows:
-        return {"generated_from": None, "first_collected": None, "days": days, "total_all_time": 0, "headlines": [], "sources": [], "categories": []}
+        return {"generated_from": None, "first_collected": None, "days": days, "total_all_time": 0, "headlines": [], "stories": [], "sources": [], "categories": []}
 
     newest = max(date.fromisoformat(r["date"]) for r in rows)
     cutoff = (newest - timedelta(days=days - 1)).isoformat()
     recent = [r for r in rows if r["date"] >= cutoff]
     # newest first; within a day, most recently collected first; url breaks ties
     recent.sort(key=lambda r: (r["date"], r["collected_at"], r["url"]), reverse=True)
+
+    # Stories covered by several publishers over the last two days, for the front page.
+    # IDF is learned from the whole corpus so common news words weigh little.
+    window_start = (newest - timedelta(days=1)).isoformat()
+    window = [i for i, r in enumerate(recent) if r["date"] >= window_start]
+    groups = find_stories(
+        [recent[i]["headline"] for i in window],
+        [recent[i]["source"] for i in window],
+        Vectorizer(r["headline"] for r in rows),
+    )
+    stories = [
+        {"items": [window[k] for k in g], "publishers": len({recent[window[k]]["source"] for k in g})}
+        for g in groups[:MAX_STORIES]
+    ]
 
     by_source = Counter(r["source"] for r in rows)
     by_category = Counter(r["category"] for r in rows)
@@ -45,6 +62,7 @@ def build(rows: list[dict[str, str]], sources: dict[str, dict[str, str]], days: 
         "headlines": [
             {"d": r["date"], "s": r["source"], "c": r["category"], "h": r["headline"], "u": r["url"]} for r in recent
         ],
+        "stories": stories,  # indices into "headlines", most representative first
         "sources": [
             {"id": sid, "name": sources.get(sid, {}).get("name", sid), "homepage": sources.get(sid, {}).get("homepage", ""), "count": n}
             for sid, n in sorted(by_source.items(), key=lambda kv: (-kv[1], kv[0]))
