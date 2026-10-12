@@ -1,14 +1,13 @@
 ---
-import Label from "../components/Label.astro";
 import Base from "../layouts/Base.astro";
 import { url } from "../lib/data";
 ---
 
 <Base title="404" compact>
   <div class="mx-auto max-w-xl border-y-2 border-ink py-16 text-center">
-    <Label si="දෝෂය" en="Error 404" class="justify-center" />
+    <p class="text-sm text-ink-3">— <span class="font-sans text-xs uppercase italic tracking-[0.3em]">Error 404</span> · <span class="font-bold">දෝෂය</span> —</p>
     <h1 class="mt-2 font-serif text-[2.6rem] font-extrabold leading-tight">මෙම පිටුව මුද්‍රණය නොවීය.</h1>
-    <p class="mt-2 font-serif text-lg text-ink-2">This page didn't make it to print.</p>
+    <p class="mt-2 font-blackletter text-2xl">This page did not go to press.</p>
     <a class="mt-8 inline-block border-2 border-ink px-5 py-2 font-sans text-sm font-semibold transition-colors hover:bg-ink hover:text-paper" href={url()}>
       මුල් පිටුවට · Front page
     </a>
