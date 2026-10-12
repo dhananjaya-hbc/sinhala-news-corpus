@@ -106,12 +106,19 @@ GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka, backup at 08:47)
        append new rows to data/raw/YYYY-MM.csv
   └─ python scripts/stats.py   # regenerate STATS.md
   └─ commit "data: daily headlines YYYY-MM-DD" only if something changed
+  └─ python scripts/source_alerts.py   # open/close an issue for feeds that keep failing
   └─ rebuild and deploy the website (deploy-site.yml)
 ```
 
 - **One failing source never stops the others.** Each feed and each source is
   isolated; failures are logged and the run continues. The job only fails if
   *every* source fails.
+- **Alerts for broken feeds.** Failing feeds are remembered in
+  [`data/health.json`](data/) (only failures are stored, so a healthy day changes
+  nothing). When a feed has failed on 2 different days, the workflow opens a GitHub
+  issue labelled `source-failure` for that source, which GitHub emails to the owner.
+  The issue lists the failing feeds and errors, is updated while the problem lasts,
+  and closes itself when the feeds work again.
 - **Retries:** network errors, timeouts, 429 and 5xx are retried 3 times
   (waits of 2, 4, 8 s). Permanent errors like 403/404 are not retried.
 - **Deduplication** is checked against the whole history, on two keys: the URL
