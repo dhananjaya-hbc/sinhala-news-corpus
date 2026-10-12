@@ -59,3 +59,20 @@ def test_main_writes_compact_utf8_json(tmp_path):
     text = out.read_text(encoding="utf-8")
     assert "සිරස්තලය 1" in text  # Sinhala written as-is, not \u escapes
     assert json.loads(text)["headlines"][0]["u"] == "https://siyathanews.lk/archives/1"
+
+
+def test_stories_link_the_same_story_across_publishers():
+    def r(i, source, headline):
+        return {**_row(i, "2026-10-12", source=source), "headline": headline}
+
+    rows = [
+        r(1, "lankadeepa", "මහින්ද රෝහල් ගත කරයි"),
+        r(2, "nethnews", "හිටපු ජනපති මහින්ද හදිසියේ රෝහල් ගත කෙරේ"),
+        r(3, "ada", "කොළඹ මාර්ග හතකට මෙට්‍රෝ බස් 112ක්"),
+        r(4, "siyatha", "ශ්‍රී ලංකා – පාකිස්ථාන විස්සයි විස්ස තරගාවලිය අදින් ඇරඹෙයි"),
+    ]
+    data = export.build(rows, SOURCES, days=30)
+    assert len(data["stories"]) == 1
+    story = data["stories"][0]
+    assert story["publishers"] == 2
+    assert {data["headlines"][i]["s"] for i in story["items"]} == {"lankadeepa", "nethnews"}
