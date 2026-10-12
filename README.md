@@ -128,9 +128,17 @@ GitHub Actions (daily 01:00 UTC = 06:30 Sri Lanka)
 shows the last 30 days of headlines by topic and by source, with search.
 Every headline links to the publisher's own article.
 
+- **Design:** an old black-and-white newspaper: a nameplate with ears and a blackletter
+  subtitle, a banner lead story, ruled columns, and a night edition printed as a negative.
+  Type is Abhaya Libre (a Sinhala serif by Mooniak), Old Standard TT and UnifrakturMaguntia.
+- **Pictures:** public-domain photographs of Ceylon from around 1900 (H.W. Cave & Co. 1901
+  album, Library of Congress, New York Public Library), shown in greyscale with a halftone
+  screen. They illustrate sections, never individual stories, and every caption says
+  "Archive photograph" with the year. Credits and sources are on the site's About page and in
+  `site/src/lib/archive.ts`. No news photographs are copied from publishers.
 - **Stack:** [Astro](https://astro.build/) (static output), TypeScript, Tailwind CSS,
-  self-hosted Noto Sans Sinhala, hosted on GitHub Pages. It ships almost no
-  JavaScript, so pages load fast on mobile data.
+  self-hosted fonts, hosted on GitHub Pages. It ships almost no JavaScript, so pages
+  load fast on mobile data.
 - **Data:** `scripts/export_site_data.py` writes the recent rows to
   `site/src/data/site-data.json` at build time; the CSVs stay the source of truth.
 - **Search** runs in the browser over a small JSON index. Queries and headlines are
