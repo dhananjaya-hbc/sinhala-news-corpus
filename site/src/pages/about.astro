@@ -23,7 +23,7 @@ const a = "underline underline-offset-4 hover:text-ink";
       <p class="first-letter:float-left first-letter:mr-2 first-letter:mt-1 first-letter:font-serif first-letter:text-[4.2rem] first-letter:font-extrabold first-letter:leading-[0.8] first-letter:text-accent">
         Sinhala is spoken by about seventeen million people, yet it is a low-resource language for computers. Clean, labelled
         Sinhala text is scarce, and much of what exists is broken by legacy fonts and invisible characters. The{" "}
-        <a class={a} href={REPO_URL}>Sinhala News Corpus</a> collects news headlines every morning, cleans them carefully, and
+        <a class={a} href={REPO_URL}>Sinhala News Corpus</a> collects news headlines four times a day, cleans them carefully, and
         labels each one by topic, so that researchers can train and test Sinhala language models.
       </p>
       <p>
@@ -39,7 +39,7 @@ const a = "underline underline-offset-4 hover:text-ink";
 
     <h2 class="mb-3 font-serif text-[1.7rem] font-extrabold leading-tight">How it works</h2>
     <p class="leading-[1.8] text-ink-2">
-      Every day at 06:30 Sri Lanka time, a GitHub Actions job reads the public RSS feeds of {data.sources.length} news sites. Each
+      Every six hours (06:30, 12:30, 18:30 and 00:30 Sri Lanka time), a GitHub Actions job reads the public RSS feeds of {data.sources.length} news sites. Each
       headline is normalised (Unicode NFC), its zero-width joiners are kept only where they form letters like ශ්‍රී and ප්‍ර,
       legacy-font text is rejected, and duplicates are removed. The topic comes from the publisher's own section. The dataset holds{" "}
       <strong class="text-ink">{nf.format(data.total_all_time)}</strong> headlines so far; this site shows the last {data.days} days.
@@ -72,7 +72,7 @@ const a = "underline underline-offset-4 hover:text-ink";
       <li>Only the headline, link, date and topic are stored. Article text and news photographs are never copied, and article pages are never requested.</li>
       <li>The photographs on this site are public-domain archive pictures of Ceylon from around 1900. They illustrate sections, never individual stories, and every one is captioned as an archive photograph.</li>
       <li>Headlines remain the property of their publishers. Every headline links to the original article, so readers go to the publisher.</li>
-      <li>robots.txt is checked before every request. Each site is read once a day at 06:30, with a backup check at 08:47 in case the first run is missed.</li>
+      <li>robots.txt is checked before every request. Each site is read four times a day, every six hours: a few small requests per visit.</li>
       <li>Publishers who want their headlines removed can <a class={a} href={`${REPO_URL}/issues/new`}>open an issue</a>; the source will be disabled and its rows removed.</li>
     </ul>
 
