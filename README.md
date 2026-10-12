@@ -10,7 +10,26 @@ GitHub Actions collects it automatically four times a day from public RSS
 feeds of Sri Lankan news sites, with no human in the loop.
 
 **Browse the latest headlines: [dhananjaya-hbc.github.io/sinhala-news-corpus](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)**
-· **Size and label balance: [STATS.md](STATS.md)** (both updated on every run).
+· **Size and label balance: [STATS.md](STATS.md)** (both updated on every run)
+· **First analysis: [notebooks/01_eda.ipynb](notebooks/01_eda.ipynb)**
+
+[![The website: today's Sinhala headlines laid out as an old black-and-white newspaper](docs/images/website.jpg)](https://dhananjaya-hbc.github.io/sinhala-news-corpus/)
+
+## Highlights
+
+- **Fully automated data pipeline.** GitHub Actions collects, cleans, deduplicates, labels and
+  commits new headlines every six hours, then rebuilds the website. No servers, no manual steps.
+- **Sinhala-specific text cleaning.** Correct zero-width-joiner handling (ශ්‍රී, රාජ්‍ය), repair of
+  old font-converter encodings, legacy-font detection, and Sinhala date parsing, with tests on real headlines.
+- **Same-story detection across publishers.** TF-IDF over character trigrams groups headlines that
+  report the same event despite Sinhala suffixes; the website's lead story is the most-covered one.
+- **Measured data quality.** The [EDA notebook](notebooks/01_eda.ipynb) quantifies label balance,
+  publisher–label confounding and label noise (publishers agree on the topic of a shared story about
+  70% of the time).
+- **Ethical by design.** Headlines and links only, robots.txt checked on every request, public-domain
+  archive photographs, and automatic alerts (GitHub issues) when a feed keeps failing.
+- **Tested and typed.** 137 Python tests; the Astro + TypeScript website is type-checked on every build
+  and scores 89–95 for performance and 100 for accessibility in Lighthouse.
 
 ## Why
 
@@ -263,6 +282,10 @@ python scripts/stats.py                # regenerate STATS.md
 python scripts/reclean.py --dry-run    # preview re-cleaning stored headlines
 python scripts/check_feeds.py URL ...  # test a feed before adding it
 
+# analysis notebook
+pip install -r requirements-analysis.txt
+jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
+
 # website (Node 22.12+)
 python scripts/export_site_data.py     # export recent headlines for the site
 cd site && npm install && npm run dev  # http://localhost:4321/sinhala-news-corpus/
@@ -272,7 +295,8 @@ cd site && npm install && npm run dev  # http://localhost:4321/sinhala-news-corp
 
 - [x] Daily automated collection with cleaning and deduplication
 - [x] Website with topic and source pages and Sinhala-aware search
-- [ ] **EDA:** label balance, headline length, vocabulary, and duplicate stories across sources
+- [x] **EDA (first pass):** label balance, publisher–label confounding, headline length, vocabulary and
+  label agreement on shared stories: [notebooks/01_eda.ipynb](notebooks/01_eda.ipynb). Re-run when there is more data.
 - [ ] **Baseline classifier:** TF-IDF (character n-grams) + logistic regression / linear SVM
 - [ ] **Transformer fine-tuning:** XLM-R and Sinhala models such as SinBERT
 - [ ] **Hugging Face dataset release** with fixed train/validation/test splits
