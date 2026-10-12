@@ -27,7 +27,7 @@ const publishers = data.sources.map((s) => ({ ...s, recent: sourceCounts.get(s.i
   {
     lead && (
       <section class="border-b-4 border-ink pb-6 text-center" aria-label="Lead story">
-        <Label si="ප්‍රධාන පුවත" en="Lead story" class="mb-2 justify-center" />
+        <Label as="h2" si="ප්‍රධාන පුවත" en="Lead story" class="mb-2 justify-center" />
         <div class="mx-auto max-w-5xl">
           <Story h={lead} size="banner" date center kicker={false} />
         </div>
