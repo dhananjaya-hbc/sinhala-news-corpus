@@ -1,0 +1,44 @@
+{
+  "failing": {
+    "https://www.ada.lk/rss/breaking_news/11": {
+      "source": "ada",
+      "since": "2026-10-14",
+      "days": [
+        "2026-10-14"
+      ],
+      "last_error": "FetchError: https://www.ada.lk/rss/breaking_news/11: HTTP 403 (server: cloudflare)"
+    },
+    "https://www.ada.lk/rss/business/7": {
+      "source": "ada",
+      "since": "2026-10-14",
+      "days": [
+        "2026-10-14"
+      ],
+      "last_error": "FetchError: https://www.ada.lk/rss/business/7: HTTP 403 (server: cloudflare)"
+    },
+    "https://www.ada.lk/rss/international/3": {
+      "source": "ada",
+      "since": "2026-10-14",
+      "days": [
+        "2026-10-14"
+      ],
+      "last_error": "FetchError: https://www.ada.lk/rss/international/3: HTTP 403 (server: cloudflare)"
+    },
+    "https://www.ada.lk/rss/sports/9": {
+      "source": "ada",
+      "since": "2026-10-14",
+      "days": [
+        "2026-10-14"
+      ],
+      "last_error": "FetchError: https://www.ada.lk/rss/sports/9: HTTP 403 (server: cloudflare)"
+    },
+    "https://www.ada.lk/rss/technology/5": {
+      "source": "ada",
+      "since": "2026-10-14",
+      "days": [
+        "2026-10-14"
+      ],
+      "last_error": "FetchError: https://www.ada.lk/rss/technology/5: HTTP 403 (server: cloudflare)"
+    }
+  }
+}
