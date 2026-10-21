@@ -56,6 +56,38 @@
       ],
       "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=6: HTTP 401 (server: nginx)"
     },
+    "https://siyathanews.lk/archives/category/business-news/feed": {
+      "source": "siyatha",
+      "since": "2026-10-21",
+      "days": [
+        "2026-10-21"
+      ],
+      "last_error": "FetchError: https://siyathanews.lk/archives/category/business-news/feed: not a valid feed (<unknown>:2:0: syntax error)"
+    },
+    "https://siyathanews.lk/archives/category/sports-news/feed": {
+      "source": "siyatha",
+      "since": "2026-10-21",
+      "days": [
+        "2026-10-21"
+      ],
+      "last_error": "FetchError: https://siyathanews.lk/archives/category/sports-news/feed: not a valid feed (<unknown>:2:0: syntax error)"
+    },
+    "https://siyathanews.lk/archives/category/world-news/feed": {
+      "source": "siyatha",
+      "since": "2026-10-21",
+      "days": [
+        "2026-10-21"
+      ],
+      "last_error": "FetchError: https://siyathanews.lk/archives/category/world-news/feed: not a valid feed (<unknown>:2:0: syntax error)"
+    },
+    "https://siyathanews.lk/feed": {
+      "source": "siyatha",
+      "since": "2026-10-21",
+      "days": [
+        "2026-10-21"
+      ],
+      "last_error": "FetchError: https://siyathanews.lk/feed: not a valid feed (<unknown>:2:0: syntax error)"
+    },
     "https://www.ada.lk/rss/breaking_news/11": {
       "source": "ada",
       "since": "2026-10-14",
