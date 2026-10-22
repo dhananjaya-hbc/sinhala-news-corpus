@@ -11,7 +11,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2: HTTP 401 (server: nginx)"
     },
@@ -26,7 +27,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=3: HTTP 401 (server: nginx)"
     },
@@ -41,7 +43,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=5: HTTP 401 (server: nginx)"
     },
@@ -56,7 +59,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=6: HTTP 401 (server: nginx)"
     },
@@ -65,7 +69,8 @@
       "since": "2026-10-21",
       "days": [
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://siyathanews.lk/archives/category/business-news/feed: not a valid feed (<unknown>:2:0: syntax error)"
     },
@@ -74,7 +79,8 @@
       "since": "2026-10-21",
       "days": [
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://siyathanews.lk/archives/category/sports-news/feed: not a valid feed (<unknown>:2:0: syntax error)"
     },
@@ -83,7 +89,8 @@
       "since": "2026-10-21",
       "days": [
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://siyathanews.lk/archives/category/world-news/feed: not a valid feed (<unknown>:2:0: syntax error)"
     },
@@ -92,7 +99,8 @@
       "since": "2026-10-21",
       "days": [
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://siyathanews.lk/feed: not a valid feed (<unknown>:2:0: syntax error)"
     },
@@ -108,7 +116,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://www.ada.lk/rss/breaking_news/11: HTTP 403 (server: cloudflare)"
     },
@@ -124,7 +133,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://www.ada.lk/rss/business/7: HTTP 403 (server: cloudflare)"
     },
@@ -140,7 +150,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://www.ada.lk/rss/international/3: HTTP 403 (server: cloudflare)"
     },
@@ -156,7 +167,8 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://www.ada.lk/rss/sports/9: HTTP 403 (server: cloudflare)"
     },
@@ -172,41 +184,10 @@
         "2026-10-19",
         "2026-10-20",
         "2026-10-21",
-        "2026-10-22"
+        "2026-10-22",
+        "2026-10-23"
       ],
       "last_error": "FetchError: https://www.ada.lk/rss/technology/5: HTTP 403 (server: cloudflare)"
-    },
-    "https://www.nethnews.lk/feed/": {
-      "source": "nethnews",
-      "since": "2026-10-22",
-      "days": [
-        "2026-10-22"
-      ],
-      "last_error": "RobotsDisallowed: https://www.nethnews.lk/feed/: disallowed by robots.txt"
-    },
-    "https://www.nethnews.lk/international-news/feed/": {
-      "source": "nethnews",
-      "since": "2026-10-22",
-      "days": [
-        "2026-10-22"
-      ],
-      "last_error": "RobotsDisallowed: https://www.nethnews.lk/international-news/feed/: disallowed by robots.txt"
-    },
-    "https://www.nethnews.lk/politics/feed/": {
-      "source": "nethnews",
-      "since": "2026-10-22",
-      "days": [
-        "2026-10-22"
-      ],
-      "last_error": "RobotsDisallowed: https://www.nethnews.lk/politics/feed/: disallowed by robots.txt"
-    },
-    "https://www.nethnews.lk/sports/feed/": {
-      "source": "nethnews",
-      "since": "2026-10-22",
-      "days": [
-        "2026-10-22"
-      ],
-      "last_error": "RobotsDisallowed: https://www.nethnews.lk/sports/feed/: disallowed by robots.txt"
     }
   }
 }
