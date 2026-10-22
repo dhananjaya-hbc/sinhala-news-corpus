@@ -175,6 +175,38 @@
         "2026-10-22"
       ],
       "last_error": "FetchError: https://www.ada.lk/rss/technology/5: HTTP 403 (server: cloudflare)"
+    },
+    "https://www.nethnews.lk/feed/": {
+      "source": "nethnews",
+      "since": "2026-10-22",
+      "days": [
+        "2026-10-22"
+      ],
+      "last_error": "RobotsDisallowed: https://www.nethnews.lk/feed/: disallowed by robots.txt"
+    },
+    "https://www.nethnews.lk/international-news/feed/": {
+      "source": "nethnews",
+      "since": "2026-10-22",
+      "days": [
+        "2026-10-22"
+      ],
+      "last_error": "RobotsDisallowed: https://www.nethnews.lk/international-news/feed/: disallowed by robots.txt"
+    },
+    "https://www.nethnews.lk/politics/feed/": {
+      "source": "nethnews",
+      "since": "2026-10-22",
+      "days": [
+        "2026-10-22"
+      ],
+      "last_error": "RobotsDisallowed: https://www.nethnews.lk/politics/feed/: disallowed by robots.txt"
+    },
+    "https://www.nethnews.lk/sports/feed/": {
+      "source": "nethnews",
+      "since": "2026-10-22",
+      "days": [
+        "2026-10-22"
+      ],
+      "last_error": "RobotsDisallowed: https://www.nethnews.lk/sports/feed/: disallowed by robots.txt"
     }
   }
 }
