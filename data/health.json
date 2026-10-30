@@ -1,36 +1,3 @@
 {
-  "failing": {
-    "https://lankatruth.com/si/?feed=rss2": {
-      "source": "lankatruth",
-      "since": "2026-10-30",
-      "days": [
-        "2026-10-30"
-      ],
-      "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2: HTTP 401 (server: nginx)"
-    },
-    "https://lankatruth.com/si/?feed=rss2&cat=3": {
-      "source": "lankatruth",
-      "since": "2026-10-30",
-      "days": [
-        "2026-10-30"
-      ],
-      "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=3: HTTP 401 (server: nginx)"
-    },
-    "https://lankatruth.com/si/?feed=rss2&cat=5": {
-      "source": "lankatruth",
-      "since": "2026-10-30",
-      "days": [
-        "2026-10-30"
-      ],
-      "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=5: HTTP 401 (server: nginx)"
-    },
-    "https://lankatruth.com/si/?feed=rss2&cat=6": {
-      "source": "lankatruth",
-      "since": "2026-10-30",
-      "days": [
-        "2026-10-30"
-      ],
-      "last_error": "FetchError: https://lankatruth.com/si/?feed=rss2&cat=6: HTTP 401 (server: nginx)"
-    }
-  }
+  "failing": {}
 }
